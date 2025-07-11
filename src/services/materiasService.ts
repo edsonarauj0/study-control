@@ -7,6 +7,7 @@ export interface Materia {
   nome: string;
   professor: string;
   organizacaoId: string;
+  emoji?: string;
 }
 
 // FUNÇÃO PARA BUSCAR MATÉRIAS. PODE FILTRAR POR ORGANIZAÇÃO SE O ID FOR PASSADO

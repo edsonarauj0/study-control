@@ -19,7 +19,7 @@ import {
 import { NavFavorites } from './nav-favorites'
 import { NavMain } from './nav-main'
 import { NavSecondary } from './nav-secondary'
-import { NavWorkspaces } from './nav-workspaces'
+import { NavMaterias } from './nav-materias'
 import NavHierarchy from './NavHierarchy'
 import { TeamSwitcher } from './team-switcher'
 import { logout } from '@/services/authService'
@@ -259,10 +259,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavFavorites favorites={data.favorites} />
         <NavHierarchy />
-        <NavWorkspaces workspaces={data.workspaces} />
+        <NavMaterias />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarRail />
     </Sidebar>
   )
 }
+
