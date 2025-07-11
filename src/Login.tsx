@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from './firebase';
-import { Button } from './components/ui/Button';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/Button';
+import { login, register } from '@/services/authService';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const signIn = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await login(email, password);
+      navigate('/');
     } catch (err: any) {
       setError(err.message);
     }
@@ -18,7 +20,8 @@ export default function Login() {
 
   const signUp = async () => {
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await register(email, password);
+      navigate('/');
     } catch (err: any) {
       setError(err.message);
     }
