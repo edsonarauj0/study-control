@@ -3,7 +3,6 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase
 import { db, auth } from '@/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Button } from '@/components/ui/Button';
-import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/sidebar/page';
 
 interface StudyTask {
@@ -59,7 +58,6 @@ function Dashboard() {
 
   return (
     <>
-      <Navbar />
       <Sidebar />
       <div className="p-4 ml-64">{/* leave space for sidebar */}
         <div className="flex gap-2 mb-4">

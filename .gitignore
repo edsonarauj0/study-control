@@ -3,3 +3,4 @@
 .env
 src/**/*.env
 node_modules/
+package-lock.json
