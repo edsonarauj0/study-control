@@ -1,5 +1,5 @@
 import { db } from '@/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, collectionGroup } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, collectionGroup } from 'firebase/firestore';
 
 // Definindo o tipo para os dados da Matéria
 export interface Materia {
@@ -48,10 +48,9 @@ export const deletarMateria = async (id: string, organizacaoId: string) => {
 }
 
 export const fetchMateriaById = async (id: string): Promise<Materia | null> => {
-  const q = query(collectionGroup(db, 'materias'), where('__name__', '==', id))
-  const snap = await getDocs(q)
-  if (snap.empty) return null
-  const d = snap.docs[0]
+  const snap = await getDocs(collectionGroup(db, 'materias'))
+  const d = snap.docs.find(doc => doc.id === id)
+  if (!d) return null
   const data = d.data() as Omit<Materia, 'id' | 'organizacaoId'>
   const orgId = d.ref.parent.parent?.id ?? ''
   return { id: d.id, organizacaoId: orgId, ...data }
