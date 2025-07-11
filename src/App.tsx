@@ -4,8 +4,11 @@ import { db, auth } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Button } from './components/ui/Button';
 import Login from './Login';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
+import { SidebarProvider, SidebarInset, SidebarTrigger } from './components/ui/sidebar';
+import { Separator } from './components/ui/separator';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from './components/ui/breadcrumb';
+import { AppSidebar } from './components/app-sidebar';
+import { NavActions } from './components/nav-actions';
 
 interface StudyTask {
   id: string;
@@ -62,47 +65,64 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar />
-        <main className="flex-1 p-4">
-          <h1 className="text-2xl font-bold mb-4">Study Control</h1>
-          <div className="flex mb-4 gap-2">
-            <input
-              type="text"
-              className="border rounded px-2 py-1 flex-grow"
-              placeholder="Add new task"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-            />
-            <Button onClick={addTask} className="bg-blue-500">
-              Add
-            </Button>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-14 shrink-0 items-center gap-2">
+          <div className="flex flex-1 items-center gap-2 px-3">
+            <SidebarTrigger />
+            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbPage className="line-clamp-1">Study Control</BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
-          <ul className="space-y-2">
-            {tasks.map(task => (
-              <li key={task.id} className="flex items-center justify-between bg-gray-100 p-2 rounded">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() => toggleTask(task.id)}
-                  />
-                  <span className={task.completed ? 'line-through' : ''}>{task.title}</span>
-                </div>
-                <Button
-                  onClick={() => removeTask(task.id)}
-                  className="bg-red-500 hover:bg-red-600"
-                >
-                  Remove
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </main>
-      </div>
-    </div>
+          <div className="ml-auto px-3">
+            <NavActions />
+          </div>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 px-4 py-10">
+          <main className="mx-auto w-full max-w-3xl">
+            <h1 className="text-2xl font-bold mb-4">Study Control</h1>
+            <div className="flex mb-4 gap-2">
+              <input
+                type="text"
+                className="border rounded px-2 py-1 flex-grow"
+                placeholder="Add new task"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
+              <Button onClick={addTask} className="bg-blue-500">
+                Add
+              </Button>
+            </div>
+            <ul className="space-y-2">
+              {tasks.map(task => (
+                <li key={task.id} className="flex items-center justify-between bg-gray-100 p-2 rounded">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => toggleTask(task.id)}
+                    />
+                    <span className={task.completed ? 'line-through' : ''}>{task.title}</span>
+                  </div>
+                  <Button
+                    onClick={() => removeTask(task.id)}
+                    className="bg-red-500 hover:bg-red-600"
+                  >
+                    Remove
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </main>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
 
