@@ -9,6 +9,7 @@ import { Separator } from './components/ui/separator';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbPage } from './components/ui/breadcrumb';
 import { AppSidebar } from './components/app-sidebar';
 import { NavActions } from './components/nav-actions';
+import ListaDeMaterias from './components/ListaDeMaterias';
 
 interface StudyTask {
   id: string;
