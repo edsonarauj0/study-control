@@ -46,3 +46,13 @@ export const deletarMateria = async (id: string, organizacaoId: string) => {
   const materiaDoc = doc(db, 'organizacoes', organizacaoId, 'materias', id)
   await deleteDoc(materiaDoc)
 }
+
+export const fetchMateriaById = async (id: string): Promise<Materia | null> => {
+  const q = query(collectionGroup(db, 'materias'), where('__name__', '==', id))
+  const snap = await getDocs(q)
+  if (snap.empty) return null
+  const d = snap.docs[0]
+  const data = d.data() as Omit<Materia, 'id' | 'organizacaoId'>
+  const orgId = d.ref.parent.parent?.id ?? ''
+  return { id: d.id, organizacaoId: orgId, ...data }
+}
