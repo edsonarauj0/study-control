@@ -62,33 +62,12 @@ function Dashboard() {
 
   return (
     <>
-      <Sidebar />
-      <div className="p-4 ml-64">{/* leave space for sidebar */}
-        <div className="flex gap-2 mb-4">
-          <input
-            className="border px-2 py-1 flex-1"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Nova tarefa"
-          />
-          <Button onClick={addTask}>Adicionar</Button>
-        </div>
-        <ul className="space-y-2">
-          {tasks.map(t => (
-            <li key={t.id} className="flex items-center gap-2">
-              <input type="checkbox" checked={t.completed} onChange={() => toggleTask(t.id)} />
-              <span className={t.completed ? 'line-through' : ''}>{t.title}</span>
-              <Button variant="ghost" onClick={() => removeTask(t.id)}>Remover</Button>
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-8 space-y-4">
-          <FormularioOrganizacao />
-          <FormularioMateria />
-          <FormularioTopico />
-          <FormularioAtividade />
-        </div>
+  
+      <div className="mt-8 space-y-4">
+        <FormularioOrganizacao />
+        <FormularioMateria />
+        <FormularioTopico />
+        <FormularioAtividade />
       </div>
     </>
 
