@@ -1,5 +1,5 @@
 import { db } from '@/firebase'
-import { collection, getDocs, addDoc, query, where } from 'firebase/firestore'
+import { collection, getDocs, addDoc, query, where, deleteDoc, doc } from 'firebase/firestore'
 
 export interface Topico {
   id: string
@@ -18,6 +18,19 @@ export const fetchTopicos = async (materiaId: string): Promise<Topico[]> => {
   }))
 }
 
+export const fetchTodosTopicos = async (): Promise<Topico[]> => {
+  const snapshot = await getDocs(topicosCollection)
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...(doc.data() as Omit<Topico, 'id'>),
+  }))
+}
+
 export const adicionarTopico = async (novo: Omit<Topico, 'id'>) => {
   return addDoc(topicosCollection, novo)
+}
+
+export const deletarTopico = async (id: string) => {
+  const ref = doc(db, 'topicos', id)
+  await deleteDoc(ref)
 }
