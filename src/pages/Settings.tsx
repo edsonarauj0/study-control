@@ -114,7 +114,7 @@ export default function Settings() {
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Atividades</BreadcrumbPage>
+              <BreadcrumbPage> {selectedTopico.nome}</BreadcrumbPage>
             </BreadcrumbItem>
           </>
         )}
@@ -252,7 +252,7 @@ export default function Settings() {
                     variant="destructive"
                     onClick={() => {
                       deletarOrganizacao(org.id).then(() => {
-                        if (selectedOrg?.id === org.id) setSelectedOrg(null)
+                        if ((selectedOrg as Organizacao | null)?.id === org.id) setSelectedOrg(null)
                         carregarOrganizacoes()
                       })
                     }}
@@ -333,7 +333,7 @@ export default function Settings() {
     return (
       <div className="space-y-8">
         <Button size="sm" variant="outline" onClick={() => setSelectedMateria(null)}>
-          Voltar
+          Voltar 2
         </Button>
         <BreadcrumbNav />
         <section>
@@ -380,7 +380,7 @@ export default function Settings() {
   return (
     <div className="space-y-8">
       <Button size="sm" variant="outline" onClick={() => setSelectedTopico(null)}>
-        Voltar
+        Voltar 3
       </Button>
       <BreadcrumbNav />
       <section>

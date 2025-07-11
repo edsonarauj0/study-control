@@ -76,7 +76,7 @@ export default function NavHierarchy() {
                     {mat.topicos.map(top => (
                       <SidebarMenuSubItem key={top.id}>
                         <Collapsible>
-                          <SidebarMenuSubButton asChild size="sm">
+                          <SidebarMenuSubButton asChild size="sm" className="ml-6">
                             <a href="#">
                               <span>{top.nome}</span>
                             </a>

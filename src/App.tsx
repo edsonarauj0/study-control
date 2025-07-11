@@ -10,10 +10,10 @@ import { OrganizacaoProvider } from './contexts/OrganizacaoContext';
 
 export default function App() {
   return (
-    <AuthProvider>
-      <OrganizacaoProvider>
-        <Sidebar>
-          <Router>
+    <Router>
+      <AuthProvider>
+        <OrganizacaoProvider>
+          <Sidebar>
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route
@@ -29,9 +29,9 @@ export default function App() {
                 element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
               />
             </Routes>
-          </Router>
-        </Sidebar>
-      </OrganizacaoProvider>
-    </AuthProvider>
+          </Sidebar>
+        </OrganizacaoProvider>
+      </AuthProvider>
+    </Router>
   );
 }
