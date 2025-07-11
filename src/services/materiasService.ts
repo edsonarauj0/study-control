@@ -1,5 +1,5 @@
 import { db } from '@/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where, collectionGroup } from 'firebase/firestore';
 
 // Definindo o tipo para os dados da Matéria
 export interface Materia {
@@ -9,36 +9,39 @@ export interface Materia {
   organizacaoId: string;
 }
 
-// Referência para a coleção "materias"
-const materiasCollectionRef = collection(db, 'materias');
-
 // FUNÇÃO PARA BUSCAR MATÉRIAS. PODE FILTRAR POR ORGANIZAÇÃO SE O ID FOR PASSADO
 export const fetchMaterias = async (organizacaoId?: string): Promise<Materia[]> => {
-  const materiasQuery = organizacaoId
-    ? query(materiasCollectionRef, where('organizacaoId', '==', organizacaoId))
-    : materiasCollectionRef
-  const querySnapshot = await getDocs(materiasQuery);
-  const materiasList = querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  } as Materia));
-  return materiasList;
-};
+  const materiasRef = organizacaoId
+    ? collection(db, 'organizacoes', organizacaoId, 'materias')
+    : collectionGroup(db, 'materias')
+  const snapshot = await getDocs(materiasRef)
+  return snapshot.docs.map(doc => {
+    const data = doc.data() as Omit<Materia, 'id' | 'organizacaoId'>
+    const orgId = organizacaoId ?? doc.ref.parent.parent?.id ?? ''
+    return { id: doc.id, organizacaoId: orgId, ...data }
+  })
+}
 
 // FUNÇÃO PARA ADICIONAR UMA NOVA MATÉRIA
 export const adicionarMateria = async (novaMateria: Omit<Materia, 'id'>) => {
-  const docRef = await addDoc(materiasCollectionRef, novaMateria);
-  return docRef;
-};
+  const { organizacaoId, ...dados } = novaMateria
+  const materiasRef = collection(db, 'organizacoes', organizacaoId, 'materias')
+  const docRef = await addDoc(materiasRef, dados)
+  return docRef
+}
 
 // FUNÇÃO PARA ATUALIZAR UMA MATÉRIA
-export const atualizarMateria = async (id: string, dadosAtualizados: Partial<Materia>) => {
-  const materiaDoc = doc(db, 'materias', id);
-  await updateDoc(materiaDoc, dadosAtualizados);
-};
+export const atualizarMateria = async (
+  id: string,
+  organizacaoId: string,
+  dadosAtualizados: Partial<Materia>
+) => {
+  const materiaDoc = doc(db, 'organizacoes', organizacaoId, 'materias', id)
+  await updateDoc(materiaDoc, dadosAtualizados)
+}
 
 // FUNÇÃO PARA DELETAR UMA MATÉRIA
-export const deletarMateria = async (id: string) => {
-  const materiaDoc = doc(db, 'materias', id);
-  await deleteDoc(materiaDoc);
-};
+export const deletarMateria = async (id: string, organizacaoId: string) => {
+  const materiaDoc = doc(db, 'organizacoes', organizacaoId, 'materias', id)
+  await deleteDoc(materiaDoc)
+}

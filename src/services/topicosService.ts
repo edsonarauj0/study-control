@@ -1,5 +1,5 @@
 import { db } from '@/firebase'
-import { collection, getDocs, addDoc, query, where, deleteDoc, doc } from 'firebase/firestore'
+import { collection, getDocs, addDoc, query, where, deleteDoc, doc, collectionGroup } from 'firebase/firestore'
 
 export interface Topico {
   id: string
@@ -7,30 +7,33 @@ export interface Topico {
   materiaId: string
 }
 
-const topicosCollection = collection(db, 'topicos')
+const topicosCollection = (materiaId: string) =>
+  collection(db, 'materias', materiaId, 'topicos')
 
 export const fetchTopicos = async (materiaId: string): Promise<Topico[]> => {
-  const q = query(topicosCollection, where('materiaId', '==', materiaId))
-  const snapshot = await getDocs(q)
+  const snapshot = await getDocs(topicosCollection(materiaId))
   return snapshot.docs.map(doc => ({
     id: doc.id,
-    ...(doc.data() as Omit<Topico, 'id'>),
+    materiaId,
+    ...(doc.data() as Omit<Topico, 'id' | 'materiaId'>),
   }))
 }
 
 export const fetchTodosTopicos = async (): Promise<Topico[]> => {
-  const snapshot = await getDocs(topicosCollection)
+  const snapshot = await getDocs(collectionGroup(db, 'topicos'))
   return snapshot.docs.map(doc => ({
     id: doc.id,
-    ...(doc.data() as Omit<Topico, 'id'>),
+    materiaId: doc.ref.parent.parent?.id ?? '',
+    ...(doc.data() as Omit<Topico, 'id' | 'materiaId'>),
   }))
 }
 
 export const adicionarTopico = async (novo: Omit<Topico, 'id'>) => {
-  return addDoc(topicosCollection, novo)
+  const { materiaId, ...dados } = novo
+  return addDoc(topicosCollection(materiaId), dados)
 }
 
-export const deletarTopico = async (id: string) => {
-  const ref = doc(db, 'topicos', id)
+export const deletarTopico = async (id: string, materiaId: string) => {
+  const ref = doc(db, 'materias', materiaId, 'topicos', id)
   await deleteDoc(ref)
 }
