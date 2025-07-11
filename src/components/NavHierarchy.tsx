@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { fetchOrganizacoes, Organizacao } from '../services/organizacoesService'
 import { fetchMaterias, Materia } from '../services/materiasService'
 import { fetchTopicos, Topico } from '../services/topicosService'
 import { fetchAtividades, Atividade } from '../services/atividadesService'
@@ -14,57 +13,58 @@ import {
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar'
-import { ChevronRight, Plus } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
+import { useOrganizacao } from '@/contexts/OrganizacaoContext'
 
-interface Hierarquia extends Organizacao {
-  materias: (Materia & { topicos: (Topico & { atividades: Atividade[] })[] })[]
+interface MateriaTree extends Materia {
+  topicos: (Topico & { atividades: Atividade[] })[]
 }
 
 export default function NavHierarchy() {
-  const [dados, setDados] = useState<Hierarquia[]>([])
+  const { activeOrganizacao } = useOrganizacao()
+  const [materias, setMaterias] = useState<MateriaTree[]>([])
 
   useEffect(() => {
     const carregar = async () => {
-      const orgs = await fetchOrganizacoes()
-      const orgData: Hierarquia[] = []
-      for (const org of orgs) {
-        const materias = await fetchMaterias(org.id)
-        const matData = []
-        for (const mat of materias) {
-          const topicos = await fetchTopicos(mat.id)
-          const topData = []
-          for (const top of topicos) {
-            const atividades = await fetchAtividades(top.id)
-            topData.push({ ...top, atividades })
-          }
-          matData.push({ ...mat, topicos: topData })
-        }
-        orgData.push({ ...org, materias: matData })
+      if (!activeOrganizacao) {
+        setMaterias([])
+        return
       }
-      setDados(orgData)
+      const materias = await fetchMaterias(activeOrganizacao.id)
+      const matData: MateriaTree[] = []
+      for (const mat of materias) {
+        const topicos = await fetchTopicos(mat.id)
+        const topData = [] as MateriaTree["topicos"]
+        for (const top of topicos) {
+          const atividades = await fetchAtividades(top.id)
+          topData.push({ ...top, atividades })
+        }
+        matData.push({ ...mat, topicos: topData })
+      }
+      setMaterias(matData)
     }
     carregar()
-  }, [])
+  }, [activeOrganizacao])
+
+  if (!activeOrganizacao) return null
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Organizações</SidebarGroupLabel>
+      <SidebarGroupLabel>{activeOrganizacao.nome}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {dados.map(org => (
-            <Collapsible key={org.id}>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+          {materias.map(mat => (
+            <SidebarMenuItem key={mat.id}>
+              <Collapsible>
+                <SidebarMenuSubButton asChild>
                   <a href="#">
-                    <span>{org.nome}</span>
+                    <span>{mat.nome}</span>
                   </a>
-                </SidebarMenuButton>
+                </SidebarMenuSubButton>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuAction className="left-2" showOnHover>
                     <ChevronRight />
@@ -72,12 +72,12 @@ export default function NavHierarchy() {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {org.materias.map(mat => (
-                      <SidebarMenuSubItem key={mat.id}>
+                    {mat.topicos.map(top => (
+                      <SidebarMenuSubItem key={top.id}>
                         <Collapsible>
-                          <SidebarMenuSubButton asChild>
+                          <SidebarMenuSubButton asChild size="sm">
                             <a href="#">
-                              <span>{mat.nome}</span>
+                              <span>{top.nome}</span>
                             </a>
                           </SidebarMenuSubButton>
                           <CollapsibleTrigger asChild>
@@ -87,33 +87,13 @@ export default function NavHierarchy() {
                           </CollapsibleTrigger>
                           <CollapsibleContent>
                             <SidebarMenuSub>
-                              {mat.topicos.map(top => (
-                                <SidebarMenuSubItem key={top.id}>
-                                  <Collapsible>
-                                    <SidebarMenuSubButton asChild size="sm">
-                                      <a href="#">
-                                        <span>{top.nome}</span>
-                                      </a>
-                                    </SidebarMenuSubButton>
-                                    <CollapsibleTrigger asChild>
-                                      <SidebarMenuAction className="left-2" showOnHover>
-                                        <ChevronRight />
-                                      </SidebarMenuAction>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                      <SidebarMenuSub>
-                                        {top.atividades.map(act => (
-                                          <SidebarMenuSubItem key={act.id}>
-                                            <SidebarMenuSubButton asChild size="sm">
-                                              <a href="#">
-                                                <span>{act.nome}</span>
-                                              </a>
-                                            </SidebarMenuSubButton>
-                                          </SidebarMenuSubItem>
-                                        ))}
-                                      </SidebarMenuSub>
-                                    </CollapsibleContent>
-                                  </Collapsible>
+                              {top.atividades.map(act => (
+                                <SidebarMenuSubItem key={act.id}>
+                                  <SidebarMenuSubButton asChild size="sm">
+                                    <a href="#">
+                                      <span>{act.nome}</span>
+                                    </a>
+                                  </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
                               ))}
                             </SidebarMenuSub>
@@ -123,15 +103,9 @@ export default function NavHierarchy() {
                     ))}
                   </SidebarMenuSub>
                 </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
+              </Collapsible>
+            </SidebarMenuItem>
           ))}
-          <SidebarMenuItem>
-            <SidebarMenuButton className="text-sidebar-foreground/70">
-              <Plus />
-              <span>More</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
