@@ -1,5 +1,5 @@
 import { db } from '@/firebase'
-import { collection, getDocs, addDoc, query, where, deleteDoc, doc, collectionGroup } from 'firebase/firestore'
+import { collection, getDocs, addDoc, query, where, deleteDoc, doc, collectionGroup, updateDoc } from 'firebase/firestore'
 
 export interface Atividade {
   id: string
@@ -36,4 +36,13 @@ export const adicionarAtividade = async (nova: Omit<Atividade, 'id'>) => {
 export const deletarAtividade = async (id: string, topicoId: string) => {
   const ref = doc(db, 'topicos', topicoId, 'atividades', id)
   await deleteDoc(ref)
+}
+
+export const atualizarAtividade = async (
+  id: string,
+  topicoId: string,
+  dadosAtualizados: Partial<Atividade>
+) => {
+  const ref = doc(db, 'topicos', topicoId, 'atividades', id)
+  await updateDoc(ref, dadosAtualizados)
 }
