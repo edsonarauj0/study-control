@@ -159,7 +159,7 @@ export default function Settings() {
                 size="sm"
                 variant="destructive"
                 onClick={() => {
-                  deletarMateria(mat.id).then(carregar)
+                  deletarMateria(mat.id, mat.organizacaoId).then(carregar)
                 }}
               >
                 Excluir
@@ -196,7 +196,7 @@ export default function Settings() {
                 size="sm"
                 variant="destructive"
                 onClick={() => {
-                  deletarTopico(top.id).then(carregar)
+                  deletarTopico(top.id, top.materiaId).then(carregar)
                 }}
               >
                 Excluir
@@ -235,7 +235,7 @@ export default function Settings() {
                 size="sm"
                 variant="destructive"
                 onClick={() => {
-                  deletarAtividade(act.id).then(carregar)
+                  deletarAtividade(act.id, act.topicoId).then(carregar)
                 }}
               >
                 Excluir
