@@ -5,6 +5,7 @@ import { adicionarMateria } from '../services/materiasService'
 function FormularioMateria() {
     const [nome, setNome] = useState('')
     const [professor, setProfessor] = useState('')
+    const [emoji, setEmoji] = useState('')
     const [organizacaoId, setOrganizacaoId] = useState('')
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -17,11 +18,12 @@ function FormularioMateria() {
 
         try {
             // Chama a função do serviço para adicionar a matéria
-            await adicionarMateria({ nome, professor, organizacaoId });
+            await adicionarMateria({ nome, professor, organizacaoId, emoji });
             alert("Matéria adicionada com sucesso!");
             // Limpa os campos do formulário após o sucesso
             setNome('');
             setProfessor('');
+            setEmoji('');
         } catch (error) {
             console.error("Erro ao adicionar matéria:", error);
             alert("Ocorreu um erro ao salvar.");
@@ -48,6 +50,14 @@ function FormularioMateria() {
                 />
             </div>
             <div>
+                <label>Emoji:</label>
+                <input
+                    type="text"
+                    value={emoji}
+                    onChange={(e) => setEmoji(e.target.value)}
+                />
+            </div>
+            <div>
                 <label>ID da Organização:</label>
                 <input
                     type="text"
@@ -61,3 +71,4 @@ function FormularioMateria() {
 }
 
 export default FormularioMateria;
+

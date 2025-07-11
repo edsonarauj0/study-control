@@ -45,7 +45,7 @@ export default function Settings() {
 
   const [materias, setMaterias] = useState<Materia[]>([])
   const [selectedMateria, setSelectedMateria] = useState<Materia | null>(null)
-  const [novaMateria, setNovaMateria] = useState({ nome: '', professor: '' })
+  const [novaMateria, setNovaMateria] = useState({ nome: '', professor: '', emoji: '' })
 
   const [topicos, setTopicos] = useState<Topico[]>([])
   const [selectedTopico, setSelectedTopico] = useState<Topico | null>(null)
@@ -175,17 +175,18 @@ export default function Settings() {
   const addMateria = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedOrg) return
-    const { nome, professor } = novaMateria
+    const { nome, professor, emoji } = novaMateria
     if (!nome || !professor) return
     await adicionarMateria({ ...novaMateria, organizacaoId: selectedOrg.id })
-    setNovaMateria({ nome: '', professor: '' })
+    setNovaMateria({ nome: '', professor: '', emoji: '' })
     carregarMaterias()
   }
 
   const editMateria = async (mat: Materia) => {
     const nome = prompt('Nome da matéria', mat.nome) || mat.nome
     const professor = prompt('Professor', mat.professor) || mat.professor
-    await atualizarMateria(mat.id, mat.organizacaoId, { nome, professor })
+    const emoji = prompt('Emoji', mat.emoji ?? '') || mat.emoji || ''
+    await atualizarMateria(mat.id, mat.organizacaoId, { nome, professor, emoji })
     carregarMaterias()
   }
 
@@ -289,12 +290,20 @@ export default function Settings() {
               onChange={e => setNovaMateria({ ...novaMateria, professor: e.target.value })}
               placeholder="Professor"
             />
+            <Input
+              value={novaMateria.emoji}
+              onChange={e => setNovaMateria({ ...novaMateria, emoji: e.target.value })}
+              placeholder="Emoji"
+            />
             <Button type="submit">Adicionar</Button>
           </form>
           <ul className="space-y-1">
             {materias.map(mat => (
               <li key={mat.id} className="flex justify-between gap-2">
-                <span>{mat.nome}</span>
+                <span>
+                  {mat.emoji ? `${mat.emoji} ` : ''}
+                  {mat.nome}
+                </span>
                 <div className="space-x-2">
                   <Button size="sm" onClick={() => setSelectedMateria(mat)}>
                     Gerenciar
@@ -411,3 +420,4 @@ export default function Settings() {
     </div>
   )
 }
+

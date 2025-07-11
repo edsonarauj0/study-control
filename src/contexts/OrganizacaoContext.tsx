@@ -5,6 +5,7 @@ interface OrganizacaoContextValue {
   organizacoes: Organizacao[]
   activeOrganizacao: Organizacao | null
   setActiveOrganizacao: (org: Organizacao) => void
+  reloadOrganizacoes: () => Promise<void>
 }
 
 const OrganizacaoContext = createContext<OrganizacaoContextValue | undefined>(
@@ -17,20 +18,22 @@ export function OrganizacaoProvider({ children }: { children: ReactNode }) {
     null
   )
 
-  useEffect(() => {
-    const carregar = async () => {
-      const orgs = await fetchOrganizacoes()
-      setOrganizacoes(orgs)
-      if (!activeOrganizacao && orgs.length > 0) {
-        setActiveOrganizacao(orgs[0])
-      }
+  const reloadOrganizacoes = async () => {
+    const orgs = await fetchOrganizacoes()
+    setOrganizacoes(orgs)
+    if (!activeOrganizacao && orgs.length > 0) {
+      setActiveOrganizacao(orgs[0])
     }
-    carregar()
-  }, [activeOrganizacao])
+  }
+
+  useEffect(() => {
+    reloadOrganizacoes()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <OrganizacaoContext.Provider
-      value={{ organizacoes, activeOrganizacao, setActiveOrganizacao }}
+      value={{ organizacoes, activeOrganizacao, setActiveOrganizacao, reloadOrganizacoes }}
     >
       {children}
     </OrganizacaoContext.Provider>
@@ -44,3 +47,4 @@ export function useOrganizacao() {
   }
   return ctx
 }
+
