@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
+import { db } from './firebase';
 import { Button } from './components/ui/Button';
 
 interface StudyTask {
-  id: number;
+  id: string;
   title: string;
   completed: boolean;
 }
@@ -11,35 +13,36 @@ function App() {
   const [tasks, setTasks] = useState<StudyTask[]>([]);
   const [input, setInput] = useState('');
 
-  // Load tasks from localStorage
+  // Load tasks from Firestore
   useEffect(() => {
-    const stored = localStorage.getItem('study-tasks');
-    if (stored) {
-      setTasks(JSON.parse(stored));
-    }
+    const fetchTasks = async () => {
+      const snapshot = await getDocs(collection(db, 'tasks'));
+      const data = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as Omit<StudyTask, 'id'>) }));
+      setTasks(data);
+    };
+    fetchTasks();
   }, []);
 
-  // Save tasks when they change
-  useEffect(() => {
-    localStorage.setItem('study-tasks', JSON.stringify(tasks));
-  }, [tasks]);
-
-  const addTask = () => {
+  const addTask = async () => {
     if (!input.trim()) return;
-    const newTask: StudyTask = {
-      id: Date.now(),
+    const docRef = await addDoc(collection(db, 'tasks'), {
       title: input.trim(),
       completed: false,
-    };
+    });
+    const newTask: StudyTask = { id: docRef.id, title: input.trim(), completed: false };
     setTasks([...tasks, newTask]);
     setInput('');
   };
 
-  const toggleTask = (id: number) => {
+  const toggleTask = async (id: string) => {
+    const target = tasks.find(t => t.id === id);
+    if (!target) return;
+    await updateDoc(doc(db, 'tasks', id), { completed: !target.completed });
     setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   };
 
-  const removeTask = (id: number) => {
+  const removeTask = async (id: string) => {
+    await deleteDoc(doc(db, 'tasks', id));
     setTasks(tasks.filter(t => t.id !== id));
   };
 
