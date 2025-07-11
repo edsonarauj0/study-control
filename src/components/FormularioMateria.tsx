@@ -1,12 +1,16 @@
 import { useState } from 'react'
-// Importe a função do seu serviço
 import { adicionarMateria } from '../services/materiasService'
+import EmojiPicker, { EmojiClickData } from 'emoji-picker-react'
 
 function FormularioMateria() {
     const [nome, setNome] = useState('')
     const [professor, setProfessor] = useState('')
     const [emoji, setEmoji] = useState('')
     const [organizacaoId, setOrganizacaoId] = useState('')
+
+    const handleEmojiClick = (emojiData: EmojiClickData) => {
+        setEmoji(emojiData.emoji)
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault(); // Previne o recarregamento da página
@@ -51,11 +55,12 @@ function FormularioMateria() {
             </div>
             <div>
                 <label>Emoji:</label>
-                <input
-                    type="text"
-                    value={emoji}
-                    onChange={(e) => setEmoji(e.target.value)}
-                />
+                <EmojiPicker onEmojiClick={handleEmojiClick} />
+                {emoji && (
+                    <div>
+                        <strong>Selecionado:</strong> {emoji}
+                    </div>
+                )}
             </div>
             <div>
                 <label>ID da Organização:</label>
