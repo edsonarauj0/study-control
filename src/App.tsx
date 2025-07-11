@@ -25,7 +25,7 @@ export default function App() {
                 element={<PrivateRoute><Settings /></PrivateRoute>}
               />
               <Route
-                path="/materia/:id"
+                path="/organizacao/:idOrganizacao/materia/:idMateria"
                 element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
               />
             </Routes>

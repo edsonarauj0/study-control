@@ -4,14 +4,14 @@ import { Materia, fetchMateriaById } from '@/services/materiasService'
 import { fetchTopicos, Topico } from '@/services/topicosService'
 
 export default function MateriaDetails() {
-  const { id } = useParams()
+  const { idMateria } = useParams()
   const [materia, setMateria] = useState<Materia | null>(null)
   const [topicos, setTopicos] = useState<Topico[]>([])
 
   useEffect(() => {
     const load = async () => {
-      if (!id) return
-      const mat = await fetchMateriaById(id)
+      if (!idMateria) return
+      const mat = await fetchMateriaById(idMateria)
       setMateria(mat)
       if (mat) {
         const tops = await fetchTopicos(mat.id)
@@ -19,7 +19,7 @@ export default function MateriaDetails() {
       }
     }
     load()
-  }, [id])
+  }, [idMateria])
 
   if (!materia) {
     return <p>Carregando...</p>
