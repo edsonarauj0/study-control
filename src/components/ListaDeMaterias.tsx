@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 // Importa as funções do seu novo serviço e o tipo Materia!
-import { fetchMaterias, Materia } from '../services/materiasService';
+import { fetchMaterias, Materia } from '../services/materiasService'
 
-function ListaDeMaterias() {
+interface Props {
+    organizacaoId: string
+}
+function ListaDeMaterias({ organizacaoId }: Props) {
     const [materias, setMaterias] = useState<Materia[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -10,7 +13,7 @@ function ListaDeMaterias() {
         const carregarDados = async () => {
             try {
                 // Usa a função do serviço para buscar os dados
-                const dados = await fetchMaterias();
+                const dados = await fetchMaterias(organizacaoId);
                 setMaterias(dados);
             } catch (error) {
                 console.error("Erro no componente ao buscar matérias:", error);
@@ -20,7 +23,7 @@ function ListaDeMaterias() {
         };
 
         carregarDados();
-    }, []);
+    }, [organizacaoId]);
 
     if (loading) {
         return <p>Carregando...</p>;
