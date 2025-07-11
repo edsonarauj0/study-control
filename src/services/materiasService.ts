@@ -1,19 +1,23 @@
 import { db } from '@/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, query, where } from 'firebase/firestore';
 
 // Definindo o tipo para os dados da Matéria
 export interface Materia {
   id: string;
   nome: string;
   professor: string;
+  organizacaoId: string;
 }
 
 // Referência para a coleção "materias"
 const materiasCollectionRef = collection(db, 'materias');
 
-// FUNÇÃO PARA BUSCAR TODAS AS MATÉRIAS
-export const fetchMaterias = async (): Promise<Materia[]> => {
-  const querySnapshot = await getDocs(materiasCollectionRef);
+// FUNÇÃO PARA BUSCAR MATÉRIAS. PODE FILTRAR POR ORGANIZAÇÃO SE O ID FOR PASSADO
+export const fetchMaterias = async (organizacaoId?: string): Promise<Materia[]> => {
+  const materiasQuery = organizacaoId
+    ? query(materiasCollectionRef, where('organizacaoId', '==', organizacaoId))
+    : materiasCollectionRef
+  const querySnapshot = await getDocs(materiasQuery);
   const materiasList = querySnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
