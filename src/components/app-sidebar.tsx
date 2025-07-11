@@ -13,6 +13,7 @@ import {
   Settings2,
   Sparkles,
   Trash2,
+  LogOut,
 } from "lucide-react"
 
 import { NavFavorites } from './nav-favorites'
@@ -20,6 +21,7 @@ import { NavMain } from './nav-main'
 import { NavSecondary } from './nav-secondary'
 import { NavWorkspaces } from './nav-workspaces'
 import { TeamSwitcher } from './team-switcher'
+import { logout } from '@/services/authService'
 import {
   Sidebar,
   SidebarContent,
@@ -95,6 +97,11 @@ const data = {
       title: "Help",
       url: "#",
       icon: MessageCircleQuestion,
+    },
+    {
+      title: "Sair",
+      icon: LogOut,
+      onClick: () => logout(),
     },
   ],
   favorites: [
