@@ -29,6 +29,14 @@ import {
 } from '@/services/atividadesService'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 
 export default function Settings() {
   const [orgs, setOrgs] = useState<Organizacao[]>([])
@@ -45,6 +53,74 @@ export default function Settings() {
 
   const [atividades, setAtividades] = useState<Atividade[]>([])
   const [novaAtividade, setNovaAtividade] = useState('')
+
+  const BreadcrumbNav = () => (
+    <Breadcrumb>
+      <BreadcrumbList>
+        <BreadcrumbItem>
+          {selectedOrg ? (
+            <BreadcrumbLink
+              href="#"
+              onClick={() => {
+                setSelectedOrg(null)
+                setSelectedMateria(null)
+                setSelectedTopico(null)
+              }}
+            >
+              Organizações
+            </BreadcrumbLink>
+          ) : (
+            <BreadcrumbPage>Organizações</BreadcrumbPage>
+          )}
+        </BreadcrumbItem>
+        {selectedOrg && (
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              {selectedMateria ? (
+                <BreadcrumbLink
+                  href="#"
+                  onClick={() => {
+                    setSelectedMateria(null)
+                    setSelectedTopico(null)
+                  }}
+                >
+                  {selectedOrg.nome}
+                </BreadcrumbLink>
+              ) : (
+                <BreadcrumbPage>{selectedOrg.nome}</BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          </>
+        )}
+        {selectedMateria && (
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              {selectedTopico ? (
+                <BreadcrumbLink
+                  href="#"
+                  onClick={() => setSelectedTopico(null)}
+                >
+                  {selectedMateria.nome}
+                </BreadcrumbLink>
+              ) : (
+                <BreadcrumbPage>{selectedMateria.nome}</BreadcrumbPage>
+              )}
+            </BreadcrumbItem>
+          </>
+        )}
+        {selectedTopico && (
+          <>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>Atividades</BreadcrumbPage>
+            </BreadcrumbItem>
+          </>
+        )}
+      </BreadcrumbList>
+    </Breadcrumb>
+  )
 
   const carregarOrganizacoes = async () => {
     const o = await fetchOrganizacoes()
@@ -148,6 +224,7 @@ export default function Settings() {
   if (!selectedOrg) {
     return (
       <div className="space-y-8">
+        <BreadcrumbNav />
         <section>
           <h2 className="text-lg font-semibold mb-2">Organizações</h2>
           <form onSubmit={addOrganizacao} className="flex gap-2 mb-2">
@@ -196,6 +273,7 @@ export default function Settings() {
         <Button size="sm" variant="outline" onClick={() => setSelectedOrg(null)}>
           Voltar
         </Button>
+        <BreadcrumbNav />
         <section>
           <h2 className="text-lg font-semibold mb-2">
             Matérias de {selectedOrg.nome}
@@ -248,6 +326,7 @@ export default function Settings() {
         <Button size="sm" variant="outline" onClick={() => setSelectedMateria(null)}>
           Voltar
         </Button>
+        <BreadcrumbNav />
         <section>
           <h2 className="text-lg font-semibold mb-2">
             Tópicos de {selectedMateria.nome}
@@ -294,6 +373,7 @@ export default function Settings() {
       <Button size="sm" variant="outline" onClick={() => setSelectedTopico(null)}>
         Voltar
       </Button>
+      <BreadcrumbNav />
       <section>
         <h2 className="text-lg font-semibold mb-2">
           Atividades de {selectedTopico.nome}
