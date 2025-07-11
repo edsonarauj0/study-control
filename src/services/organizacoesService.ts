@@ -1,5 +1,5 @@
 import { db } from '@/firebase'
-import { collection, getDocs, addDoc } from 'firebase/firestore'
+import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore'
 
 export interface Organizacao {
   id: string
@@ -18,4 +18,9 @@ export const fetchOrganizacoes = async (): Promise<Organizacao[]> => {
 
 export const adicionarOrganizacao = async (nova: Omit<Organizacao, 'id'>) => {
   return addDoc(organizacoesCollection, nova)
+}
+
+export const deletarOrganizacao = async (id: string) => {
+  const ref = doc(db, 'organizacoes', id)
+  await deleteDoc(ref)
 }
