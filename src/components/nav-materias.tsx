@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { fetchMaterias, Materia } from '@/services/materiasService'
 import { useOrganizacao } from '@/contexts/OrganizacaoContext'
 import {
@@ -36,10 +37,10 @@ export function NavMaterias() {
           {materias.map(mat => (
             <SidebarMenuItem key={mat.id}>
               <SidebarMenuButton asChild>
-                <a href="#">
+                <Link to={`/materia/${mat.id}`}>
                   <span>{mat.emoji ?? '📚'}</span>
                   <span>{mat.nome}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

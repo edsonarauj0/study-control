@@ -4,6 +4,7 @@ import PrivateRoute from '@/components/PrivateRoute';
 import Login from '@/Login';
 import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
+import MateriaDetails from '@/pages/MateriaDetails';
 import Sidebar from './components/sidebar/page';
 import { OrganizacaoProvider } from './contexts/OrganizacaoContext';
 
@@ -22,6 +23,10 @@ export default function App() {
               <Route
                 path="/settings"
                 element={<PrivateRoute><Settings /></PrivateRoute>}
+              />
+              <Route
+                path="/materia/:id"
+                element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
               />
             </Routes>
           </Router>
