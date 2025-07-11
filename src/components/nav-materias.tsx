@@ -37,7 +37,7 @@ export function NavMaterias() {
           {materias.map(mat => (
             <SidebarMenuItem key={mat.id}>
               <SidebarMenuButton asChild>
-                <Link to={`/materia/${mat.id}`}>
+                <Link to={`/organizacao/${activeOrganizacao.id}/materia/${mat.id}`}>
                   <span>{mat.emoji ?? '📚'}</span>
                   <span>{mat.nome}</span>
                 </Link>
