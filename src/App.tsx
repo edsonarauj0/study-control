@@ -60,9 +60,6 @@ function App() {
     setTasks(tasks.filter(t => t.id !== id));
   };
 
-  if (!user) {
-    return <Login />;
-  }
 
   return (
     <SidebarProvider>

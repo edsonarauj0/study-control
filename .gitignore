@@ -1,0 +1,5 @@
+
+# Ignorar arquivos de ambiente
+.env
+src/**/*.env
+node_modules/
