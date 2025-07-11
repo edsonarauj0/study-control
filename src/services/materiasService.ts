@@ -1,4 +1,4 @@
-import { db } from '../firebase'; // Importa a instância do Firestore
+import { db } from '@/firebase';
 import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 // Definindo o tipo para os dados da Matéria
