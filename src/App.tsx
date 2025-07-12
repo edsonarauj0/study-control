@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import PrivateRoute from '@/components/common/PrivateRoute';
 import Login from '@/Login';
 import Dashboard from '@/pages/Dashboard';
@@ -31,26 +32,28 @@ function AppContent() {
 
   return (
     <OrganizacaoProvider>
-      <ModalProvider>
-        <Sidebar>
-          <Toaster />
-          <Routes>
-            <Route
-              path="/"
-              element={<PrivateRoute><Dashboard /></PrivateRoute>}
-            />
-            <Route
-              path="/settings"
-              element={<PrivateRoute><Settings /></PrivateRoute>}
-            />
-            <Route
-              path="/organizacao/:idOrganizacao/materia/:idMateria"
-              element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
-            />
-            <Route path="*" element={<Dashboard />} />
-          </Routes>
-        </Sidebar>
-      </ModalProvider>
+      <FavoritesProvider>
+        <ModalProvider>
+          <Sidebar>
+            <Toaster />
+            <Routes>
+              <Route
+                path="/"
+                element={<PrivateRoute><Dashboard /></PrivateRoute>}
+              />
+              <Route
+                path="/settings"
+                element={<PrivateRoute><Settings /></PrivateRoute>}
+              />
+              <Route
+                path="/organizacao/:idOrganizacao/materia/:idMateria"
+                element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
+              />
+              <Route path="*" element={<Dashboard />} />
+            </Routes>
+          </Sidebar>
+        </ModalProvider>
+      </FavoritesProvider>
     </OrganizacaoProvider>
   );
 }

@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/sidebar'
 import { TeamSwitcher } from "../navigation/TeamSwitcher"
 import { MainNav } from "../navigation/MainNav"
-import { NavFavorites } from "../navigation/NavFavorites"
+import { NavFavoritesMaterias } from "../navigation/NavFavoritesMaterias"
 import { NavMaterias } from "../navigation/NavMaterias"
 import { NavSecondary } from "../navigation/NavSecondary"
 
@@ -69,33 +69,6 @@ const data = {
       url: "#",
       icon: LogOut,
       onClick: logout
-    },
-  ],
-  favorites: [
-    {
-      name: "Project Planning & Task Tracking",
-      url: "#",
-      emoji: "📋",
-    },
-    {
-      name: "Family Recipe Collection & Meal Planning",
-      url: "#",
-      emoji: "🍳",
-    },
-    {
-      name: "Fitness Tracker & Workout Routines",
-      url: "#",
-      emoji: "💪",
-    },
-    {
-      name: "Book Notes & Reading List",
-      url: "#",
-      emoji: "📚",
-    },
-    {
-      name: "Sustainable Garden & Plant Care Log",
-      url: "#",
-      emoji: "🌱",
     },
   ],
   workspaces: [
@@ -204,7 +177,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <MainNav items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
-        <NavFavorites favorites={data.favorites} />
+        <NavFavoritesMaterias />
         <NavMaterias />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>

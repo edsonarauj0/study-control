@@ -41,7 +41,7 @@ export default function MateriaDetails() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-white p-4 rounded-md">
       <h1 className="text-2xl font-bold">{materia.nome}</h1>
 
       <section className="space-y-2">

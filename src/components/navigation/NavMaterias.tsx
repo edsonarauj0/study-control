@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { adicionarMateria, fetchMaterias, deletarMateria, Materia } from '@/services/materiasService'
 import { useOrganizacao } from '@/contexts/OrganizacaoContext'
 import { useActiveRoute } from '@/hooks/useActiveRoute'
+import { useFavorites } from '@/contexts/FavoritesContext'
+import { toast } from 'sonner'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -14,7 +16,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/Button'
-import { ArrowUpRight, CopyPlus, MoreHorizontal, Paperclip, Plus, StarOff, Trash2 } from 'lucide-react'
+import { ArrowUpRight, CopyPlus, MoreHorizontal, Paperclip, Plus, Star, StarOff, Trash2, Link as LinkIcon } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useModal } from '@/contexts/ModalContext'
 import { FormularioMaterias } from '@/components/forms/MateriaForm'
@@ -28,7 +30,8 @@ export function NavMaterias() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { isMobile } = useSidebar()
   const { isActiveRoute } = useActiveRoute()
-  const { openModal, closeModal } = useModal();
+  const { openModal, closeModal } = useModal()
+  const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites()
 
   useEffect(() => {
     const load = async () => {
@@ -76,6 +79,27 @@ export function NavMaterias() {
     }
   }
 
+  const handleToggleFavorite = async (materia: Materia) => {
+    try {
+      if (isFavorite(materia.id)) {
+        await removeFromFavorites(materia.id);
+        toast.success(`${materia.nome} removida dos favoritos`);
+      } else {
+        await addToFavorites({
+          id: materia.id,
+          nome: materia.nome,
+          emoji: materia.emoji || '📚',
+          organizacaoId: materia.organizacaoId,
+          professor: materia.professor
+        });
+        toast.success(`${materia.nome} adicionada aos favoritos`);
+      }
+    } catch (error) {
+      console.error('Erro ao gerenciar favorito:', error);
+      toast.error('Erro ao gerenciar favorito. Tente novamente.');
+    }
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Matérias</SidebarGroupLabel>
@@ -110,15 +134,25 @@ export function NavMaterias() {
                     side={isMobile ? "bottom" : "right"}
                     align={isMobile ? "end" : "start"}
                   >
-                    <DropdownMenuItem>
-                      <StarOff className="text-muted-foreground" />
-                      <span>Remove from Favorites</span>
+                    <DropdownMenuItem onClick={() => handleToggleFavorite(mat)}>
+                      {isFavorite(mat.id) ? (
+                        <>
+                          <StarOff className="text-muted-foreground" />
+                          <span>Remove from Favorites</span>
+                        </>
+                      ) : (
+                        <>
+                          <Star className="text-muted-foreground" />
+                          <span>Add to Favorites</span>
+                        </>
+                      )}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.origin + materiaUrl)}>
+                      <LinkIcon className="text-muted-foreground" />
                       <span>Copy Link</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.open(materiaUrl, '_blank')}>
                       <ArrowUpRight className="text-muted-foreground" />
                       <span>Open in New Tab</span>
                     </DropdownMenuItem>

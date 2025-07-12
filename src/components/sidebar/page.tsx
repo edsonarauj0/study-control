@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { AppSidebar } from '@/components/layout/AppSidebar'
+import { AppSidebar } from '@/components/sidebar/AppSidebar'
 import { NavActions } from '@/components/navigation/NavActions'
 import { useActiveRoute } from '@/hooks/useActiveRoute'
 import {
@@ -26,7 +26,7 @@ export default function Sidebar({ children }: SidebarProps) {
         <SidebarProvider>
             <AppSidebar />
             <SidebarInset>
-                <header className="flex h-14 shrink-0 items-center gap-2">
+                <header className="flex h-14 shrink-0 items-center gap-2 bg-white">
                     <div className="flex flex-1 items-center gap-2 px-3">
                         <SidebarTrigger />
                         <Separator orientation="vertical" className="mr-2 h-4" />
@@ -47,7 +47,7 @@ export default function Sidebar({ children }: SidebarProps) {
                         <NavActions />
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 w-full max-w-4xl mx-auto px-4 md:px-8 py-10">
+                <div className="flex flex-1 flex-col gap-2 w-full max-w-4xl mx-auto px-2 md:px-8 py-10 bg-gray-100">
                     {children}
                 </div>
             </SidebarInset>
