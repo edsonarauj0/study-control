@@ -34,6 +34,11 @@ import {
 const data = {
   navMain: [
     {
+      title: "Dashboard",
+      url: "/",
+      icon: Home,
+    },
+    {
       title: "Search",
       url: "#",
       icon: Search,
@@ -47,7 +52,6 @@ const data = {
       title: "Home",
       url: "#",
       icon: Home,
-      isActive: true,
     },
     {
       title: "Inbox",

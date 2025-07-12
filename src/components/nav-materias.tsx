@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { fetchMaterias, Materia } from '@/services/materiasService'
 import { useOrganizacao } from '@/contexts/OrganizacaoContext'
+import { useActiveRoute } from '@/hooks/useActiveRoute'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -19,6 +20,8 @@ export function NavMaterias() {
   const { activeOrganizacao } = useOrganizacao()
   const [materias, setMaterias] = useState<Materia[]>([])
   const { isMobile } = useSidebar()
+  const { isActiveRoute } = useActiveRoute()
+
   useEffect(() => {
     const load = async () => {
       if (!activeOrganizacao) {
@@ -38,47 +41,51 @@ export function NavMaterias() {
       <SidebarGroupLabel>Matérias</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {materias.map(mat => (
-            <SidebarMenuItem key={mat.id}>
-              <SidebarMenuButton asChild>
-                <Link to={`/organizacao/${activeOrganizacao.id}/materia/${mat.id}`}>
-                  <span>{mat.emoji ?? '📚'}</span>
-                  <span>{mat.nome}</span>
-                </Link>
-              </SidebarMenuButton>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <SidebarMenuAction showOnHover>
-                    <MoreHorizontal />
-                    <span className="sr-only">More</span>
-                  </SidebarMenuAction>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-56 rounded-lg"
-                  side={isMobile ? "bottom" : "right"}
-                  align={isMobile ? "end" : "start"}
-                >
-                  <DropdownMenuItem>
-                    <StarOff className="text-muted-foreground" />
-                    <span>Remove from Favorites</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <span>Copy Link</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <ArrowUpRight className="text-muted-foreground" />
-                    <span>Open in New Tab</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Trash2 className="text-muted-foreground" />
-                    <span>Delete</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </SidebarMenuItem>
-          ))}
+          {materias.map(mat => {
+            const materiaUrl = `/organizacao/${activeOrganizacao.id}/materia/${mat.id}`;
+            const isActive = isActiveRoute(materiaUrl);
+            return (
+              <SidebarMenuItem key={mat.id}>
+                <SidebarMenuButton asChild isActive={isActive}>
+                  <Link to={materiaUrl}>
+                    <span>{mat.emoji ?? '📚'}</span>
+                    <span>{mat.nome}</span>
+                  </Link>
+                </SidebarMenuButton>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <SidebarMenuAction showOnHover>
+                      <MoreHorizontal />
+                      <span className="sr-only">More</span>
+                    </SidebarMenuAction>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-56 rounded-lg"
+                    side={isMobile ? "bottom" : "right"}
+                    align={isMobile ? "end" : "start"}
+                  >
+                    <DropdownMenuItem>
+                      <StarOff className="text-muted-foreground" />
+                      <span>Remove from Favorites</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <span>Copy Link</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <ArrowUpRight className="text-muted-foreground" />
+                      <span>Open in New Tab</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <Trash2 className="text-muted-foreground" />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

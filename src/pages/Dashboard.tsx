@@ -4,10 +4,6 @@ import { db, auth } from '@/firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { Button } from '@/components/ui/Button';
 import Sidebar from '@/components/sidebar/page'
-import FormularioOrganizacao from '@/components/FormularioOrganizacao'
-import FormularioMateria from '@/components/FormularioMateria'
-import FormularioTopico from '@/components/FormularioTopico'
-import FormularioAtividade from '@/components/FormularioAtividade'
 
 interface StudyTask {
   id: string;
@@ -64,10 +60,7 @@ function Dashboard() {
     <>
   
       <div className="mt-8 space-y-4">
-        <FormularioOrganizacao />
-        <FormularioMateria />
-        <FormularioTopico />
-        <FormularioAtividade />
+        
       </div>
     </>
 

@@ -1,5 +1,7 @@
 import React from "react"
 import { type LucideIcon } from "lucide-react"
+import { Link } from "react-router-dom"
+import { useActiveRoute } from "@/hooks/useActiveRoute"
 
 import {
     SidebarGroup,
@@ -22,21 +24,33 @@ export function NavSecondary({
         onClick?: () => void
     }[]
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+    const { isActiveRoute } = useActiveRoute();
+
     return (
         <SidebarGroup {...props}>
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
-                            <SidebarMenuButton asChild>
-                                <a href={item.url ?? "#"} onClick={item.onClick}>
-                                    <item.icon />
-                                    <span>{item.title}</span>
-                                </a>
-                            </SidebarMenuButton>
-                            {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
-                        </SidebarMenuItem>
-                    ))}
+                    {items.map((item) => {
+                        const isActive = item.url ? isActiveRoute(item.url) : false;
+                        return (
+                            <SidebarMenuItem key={item.title}>
+                                <SidebarMenuButton asChild isActive={isActive}>
+                                    {item.onClick ? (
+                                        <button onClick={item.onClick}>
+                                            <item.icon />
+                                            <span>{item.title}</span>
+                                        </button>
+                                    ) : (
+                                        <Link to={item.url ?? "#"}>
+                                            <item.icon />
+                                            <span>{item.title}</span>
+                                        </Link>
+                                    )}
+                                </SidebarMenuButton>
+                                {item.badge && <SidebarMenuBadge>{item.badge}</SidebarMenuBadge>}
+                            </SidebarMenuItem>
+                        );
+                    })}
                 </SidebarMenu>
             </SidebarGroupContent>
         </SidebarGroup>

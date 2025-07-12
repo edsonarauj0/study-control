@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
 import { NavActions } from '@/components/nav-actions'
+import { useActiveRoute } from '@/hooks/useActiveRoute'
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -19,6 +20,8 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ children }: SidebarProps) {
+    const { currentPath } = useActiveRoute();
+
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -31,7 +34,10 @@ export default function Sidebar({ children }: SidebarProps) {
                             <BreadcrumbList>
                                 <BreadcrumbItem>
                                     <BreadcrumbPage className="line-clamp-1">
-                                        Project Management & Task Tracking
+                                        {currentPath === '/' ? 'Dashboard' : 
+                                         currentPath === '/settings' ? 'Configurações' :
+                                         currentPath.includes('/organizacao/') ? 'Matéria' :
+                                         'Study Control'}
                                     </BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
