@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { adicionarMateria, fetchMaterias, deletarMateria, Materia } from '@/services/materiasService'
+import { fetchTopicos, Topico } from '@/services/topicosService'
 import { useOrganizacao } from '@/contexts/OrganizacaoContext'
 import { useActiveRoute } from '@/hooks/useActiveRoute'
 import { useFavorites } from '@/contexts/FavoritesContext'
@@ -14,13 +15,40 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Button } from '@/components/ui/Button'
-import { ArrowUpRight, CopyPlus, MoreHorizontal, Paperclip, Plus, Star, StarOff, Trash2, Link as LinkIcon } from 'lucide-react'
+import {
+  ArrowUpRight,
+  CopyPlus,
+  MoreHorizontal,
+  Plus,
+  Star,
+  StarOff,
+  Trash2,
+  Link as LinkIcon,
+  ChevronRight
+} from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useModal } from '@/contexts/ModalContext'
 import { FormularioMaterias } from '@/components/forms/MateriaForm'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/DropdownMenu'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/DropdownMenu'
 import { DropdownMenuSeparator } from '@radix-ui/react-dropdown-menu'
 
 export function NavMaterias() {
@@ -32,6 +60,9 @@ export function NavMaterias() {
   const { isActiveRoute } = useActiveRoute()
   const { openModal, closeModal } = useModal()
   const { addToFavorites, removeFromFavorites, isFavorite } = useFavorites()
+
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [topicosMap, setTopicosMap] = useState<Record<string, Topico[]>>({})
 
   useEffect(() => {
     const load = async () => {
@@ -100,6 +131,19 @@ export function NavMaterias() {
     }
   };
 
+  const handleLoadTopicos = async (materiaId: string) => {
+    // Carregar tópicos se ainda não foram carregados
+    if (!topicosMap[materiaId]) {
+      try {
+        const topicos = await fetchTopicos(materiaId)
+        setTopicosMap(prev => ({ ...prev, [materiaId]: topicos }))
+      } catch (error) {
+        console.error('Erro ao buscar tópicos:', error)
+        toast.error('Erro ao carregar tópicos')
+      }
+    }
+  };
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Matérias</SidebarGroupLabel>
@@ -111,61 +155,109 @@ export function NavMaterias() {
               <span>Adicionar</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          {materias.map(mat => {
+          {materias.slice(0, visibleCount).map(mat => {
             const materiaUrl = `/organizacao/${activeOrganizacao.id}/materia/${mat.id}`;
             const isActive = isActiveRoute(materiaUrl);
+            const topicos = topicosMap[mat.id] || [];
+            
             return (
-              <SidebarMenuItem key={mat.id}>
-                <SidebarMenuButton asChild isActive={isActive}>
-                  <Link to={materiaUrl}>
-                    <span className='h-4 w-4'>{mat.emoji ?? '📚'}</span>
-                    <span>{mat.nome}</span>
-                  </Link>
-                </SidebarMenuButton>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuAction showOnHover>
-                      <MoreHorizontal />
-                      <span className="sr-only">More</span>
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-56 rounded-lg"
-                    side={isMobile ? "bottom" : "right"}
-                    align={isMobile ? "end" : "start"}
-                  >
-                    <DropdownMenuItem onClick={() => handleToggleFavorite(mat)}>
-                      {isFavorite(mat.id) ? (
-                        <>
-                          <StarOff className="text-muted-foreground" />
-                          <span>Remove from Favorites</span>
-                        </>
-                      ) : (
-                        <>
-                          <Star className="text-muted-foreground" />
-                          <span>Add to Favorites</span>
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.origin + materiaUrl)}>
-                      <LinkIcon className="text-muted-foreground" />
-                      <span>Copy Link</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => window.open(materiaUrl, '_blank')}>
-                      <ArrowUpRight className="text-muted-foreground" />
-                      <span>Open in New Tab</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => handleDeleteMateria(mat)}>
-                      <Trash2 className="text-muted-foreground" />
-                      <span>Excluir</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
+              <Collapsible key={mat.id} onOpenChange={(open) => open && handleLoadTopicos(mat.id)}>
+                <SidebarMenuItem>
+                  <div className="flex items-center w-full group">
+                    <CollapsibleTrigger asChild>
+                      <button className="flex items-center justify-center h-4 w-4 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-sm shrink-0">
+                        <ChevronRight className="h-3 w-3 transition-transform duration-200 data-[state=open]:rotate-90" />
+                      </button>
+                    </CollapsibleTrigger>
+                    <SidebarMenuButton asChild isActive={isActive} className="flex-1 min-w-0">
+                      <Link to={materiaUrl} className="flex items-center min-w-0 w-full">
+                        <span className='h-4 w-4 shrink-0'>{mat.emoji ?? '📚'}</span>
+                        <span className="truncate min-w-0 block">{mat.nome}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuAction showOnHover>
+                          <MoreHorizontal />
+                          <span className="sr-only">More</span>
+                        </SidebarMenuAction>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="w-56 rounded-lg"
+                        side={isMobile ? "bottom" : "right"}
+                        align={isMobile ? "end" : "start"}
+                      >
+                        <DropdownMenuItem onClick={() => handleToggleFavorite(mat)}>
+                          {isFavorite(mat.id) ? (
+                            <>
+                              <StarOff className="text-muted-foreground" />
+                              <span>Remove from Favorites</span>
+                            </>
+                          ) : (
+                            <>
+                              <Star className="text-muted-foreground" />
+                              <span>Add to Favorites</span>
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigator.clipboard.writeText(window.location.origin + materiaUrl)}>
+                          <LinkIcon className="text-muted-foreground" />
+                          <span>Copy Link</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => window.open(materiaUrl, '_blank')}>
+                          <ArrowUpRight className="text-muted-foreground" />
+                          <span>Open in New Tab</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleDeleteMateria(mat)}>
+                          <Trash2 className="text-muted-foreground" />
+                          <span>Excluir</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </SidebarMenuItem>
+                
+                <CollapsibleContent className="space-y-1">
+                  {/* Tópicos expandidos */}
+                  {topicos.length > 0 ? (
+                    <div className="ml-4 border-l border-sidebar-border pl-4 space-y-1">
+                      {topicos.map(topico => {
+                        const topicoUrl = `/organizacao/${activeOrganizacao.id}/materia/${mat.id}/topico/${topico.id}`;
+                        const isTopicoActive = isActiveRoute(topicoUrl);
+                        
+                        return (
+                          <SidebarMenuItem key={topico.id}>
+                            <SidebarMenuButton asChild isActive={isTopicoActive} className="text-sm min-w-0">
+                              <Link to={topicoUrl} className="flex items-center min-w-0 w-full">
+                                <span className="h-3 w-3 shrink-0">•</span>
+                                <span className="truncate min-w-0 block">{topico.nome}</span>
+                              </Link>
+                            </SidebarMenuButton>
+                          </SidebarMenuItem>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="ml-8 py-1 text-xs text-sidebar-foreground/50">
+                      Nenhum tópico encontrado
+                    </div>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
             );
           })}
+
+          {materias.length > visibleCount && (
+            <SidebarMenuItem key="show-more">
+              <SidebarMenuButton className="text-sidebar-foreground/70" onClick={() => setVisibleCount((prev) => prev + 5)}>
+                <MoreHorizontal />
+                <span>Carregar mais</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
 
@@ -174,7 +266,7 @@ export function NavMaterias() {
           <DialogHeader>
             <DialogTitle>Confirmar Exclusão</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir a matéria <strong>"{materiaToDelete?.nome}"</strong>? 
+              Tem certeza que deseja excluir a matéria <strong>"{materiaToDelete?.nome}"</strong>?
               Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { Materia, fetchMateriaById } from '@/services/materiasService'
 import { fetchTopicos, Topico } from '@/services/topicosService'
 
@@ -100,6 +100,18 @@ export default function MateriaDetails() {
                 }
               />
               <span>{t.nome}</span>
+            </li>
+          ))}
+        </ul>
+        <ul className="list-disc pl-4">
+          {topicos.map(topico => (
+            <li key={topico.id}>
+              <Link
+                to={`/organizacao/${materia.organizacaoId}/materia/${materia.id}/topico/${topico.id}`}
+                className="text-blue-500 hover:underline"
+              >
+                {topico.nome}
+              </Link>
             </li>
           ))}
         </ul>

@@ -13,6 +13,7 @@ import { Toaster } from 'sonner';
 import { ModalProvider } from './contexts/ModalContext';
 import { LoadingProvider } from './contexts/LoadingContext';
 import { GlobalLoading } from './components/common/GlobalLoading';
+import TopicoDetails from '@/pages/TopicoDetails';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -48,6 +49,10 @@ function AppContent() {
               <Route
                 path="/organizacao/:idOrganizacao/materia/:idMateria"
                 element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
+              />
+              <Route
+                path="/organizacao/:idOrganizacao/materia/:idMateria/topico/:idTopico"
+                element={<PrivateRoute><TopicoDetails /></PrivateRoute>}
               />
               <Route path="*" element={<Dashboard />} />
             </Routes>

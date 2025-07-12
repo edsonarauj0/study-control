@@ -1,10 +1,12 @@
 import { db } from '@/firebase'
-import { collection, getDocs, addDoc, query, where, deleteDoc, doc, collectionGroup, updateDoc } from 'firebase/firestore'
+import { collection, getDocs, addDoc, query, where, deleteDoc, doc, collectionGroup, updateDoc, getDoc } from 'firebase/firestore'
 
 export interface Topico {
   id: string
   nome: string
   materiaId: string
+  organizacaoId: string
+  descricao: string
 }
 
 const topicosCollection = (materiaId: string) =>
@@ -46,3 +48,18 @@ export const atualizarTopico = async (
   const ref = doc(db, 'materias', materiaId, 'topicos', id)
   await updateDoc(ref, dadosAtualizados)
 }
+
+export const fetchTopicoById = async (materiaId: string, topicoId: string): Promise<Topico | null> => {
+  const docRef = doc(db, 'materias', materiaId, 'topicos', topicoId);
+  const docSnap = await getDoc(docRef);
+
+  if (docSnap.exists()) {
+    return {
+      id: docSnap.id,
+      materiaId,
+      ...(docSnap.data() as Omit<Topico, 'id' | 'materiaId'>),
+    };
+  } else {
+    return null;
+  }
+};

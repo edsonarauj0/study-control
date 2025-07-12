@@ -96,7 +96,7 @@ function EmojiPickerContent({
 }: React.ComponentProps<typeof EmojiPickerPrimitive.Viewport>) {
   return (
     <EmojiPickerPrimitive.Viewport
-      className={cn("outline-hidden relative flex-1", className)}
+      className={cn("outline-hidden relative flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100", className)}
       data-slot="emoji-picker-viewport"
       {...props}
     >
@@ -151,7 +151,7 @@ function EmojiPickerFooter({
             </>
           ) : (
             <span className="text-muted-foreground ml-1.5 flex h-7 items-center truncate text-xs">
-              Select an emoji…
+              Selecione um emoji...
             </span>
           )
         }
