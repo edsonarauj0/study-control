@@ -1,16 +1,6 @@
-"use client"
 
 import * as React from "react"
 import { ChevronDown, Building2 } from "lucide-react"
-
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuShortcut,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
     SidebarMenu,
     SidebarMenuButton,
@@ -18,6 +8,7 @@ import {
 } from '@/components/ui/sidebar'
 
 import { useOrganizacao } from "@/contexts/OrganizacaoContext"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuShortcut, DropdownMenuTrigger } from "../ui/DropdownMenu"
 
 export function TeamSwitcher() {
     const { organizacoes, activeOrganizacao, setActiveOrganizacao } = useOrganizacao()

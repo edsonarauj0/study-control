@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext';
-import PrivateRoute from '@/components/PrivateRoute';
+import PrivateRoute from '@/components/common/PrivateRoute';
 import Login from '@/Login';
 import Dashboard from '@/pages/Dashboard';
 import Settings from '@/pages/Settings';
@@ -8,12 +8,16 @@ import MateriaDetails from '@/pages/MateriaDetails';
 import Sidebar from './components/sidebar/page';
 import { OrganizacaoProvider } from './contexts/OrganizacaoContext';
 import { useAuth } from '@/hooks/useAuth';
+import { Toaster } from 'sonner';
+import { ModalProvider } from './contexts/ModalContext';
+import { LoadingProvider } from './contexts/LoadingContext';
+import { GlobalLoading } from './components/common/GlobalLoading';
 
 function AppContent() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Carregando...</div>;
+    return null; // O loading será exibido pelo GlobalLoading
   }
 
   if (!user) {
@@ -27,23 +31,26 @@ function AppContent() {
 
   return (
     <OrganizacaoProvider>
-      <Sidebar>
-        <Routes>
-          <Route
-            path="/"
-            element={<PrivateRoute><Dashboard /></PrivateRoute>}
-          />
-          <Route
-            path="/settings"
-            element={<PrivateRoute><Settings /></PrivateRoute>}
-          />
-          <Route
-            path="/organizacao/:idOrganizacao/materia/:idMateria"
-            element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
-          />
-          <Route path="*" element={<Dashboard />} />
-        </Routes>
-      </Sidebar>
+      <ModalProvider>
+        <Sidebar>
+          <Toaster />
+          <Routes>
+            <Route
+              path="/"
+              element={<PrivateRoute><Dashboard /></PrivateRoute>}
+            />
+            <Route
+              path="/settings"
+              element={<PrivateRoute><Settings /></PrivateRoute>}
+            />
+            <Route
+              path="/organizacao/:idOrganizacao/materia/:idMateria"
+              element={<PrivateRoute><MateriaDetails /></PrivateRoute>}
+            />
+            <Route path="*" element={<Dashboard />} />
+          </Routes>
+        </Sidebar>
+      </ModalProvider>
     </OrganizacaoProvider>
   );
 }
@@ -51,9 +58,12 @@ function AppContent() {
 export default function App() {
   return (
     <Router>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
+      <LoadingProvider>
+        <GlobalLoading />
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </LoadingProvider>
     </Router>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { fetchMaterias, Materia } from '../services/materiasService'
-import { fetchTopicos, Topico } from '../services/topicosService'
-import { fetchAtividades, Atividade } from '../services/atividadesService'
+import { fetchMaterias, Materia } from '@/services/materiasService'
+import { fetchTopicos, Topico } from '@/services/topicosService'
+import { fetchAtividades, Atividade } from '@/services/atividadesService'
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,7 +25,7 @@ interface MateriaTree extends Materia {
   topicos: (Topico & { atividades: Atividade[] })[]
 }
 
-export default function NavHierarchy() {
+export function NavHierarchy() {
   const { activeOrganizacao } = useOrganizacao()
   const [materias, setMaterias] = useState<MateriaTree[]>([])
 

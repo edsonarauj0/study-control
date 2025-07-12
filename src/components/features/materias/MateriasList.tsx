@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 // Importa as funções do seu novo serviço e o tipo Materia!
-import { fetchMaterias, Materia } from '../services/materiasService'
+import { fetchMaterias, Materia } from '../../../services/materiasService'
 
 interface Props {
     organizacaoId: string

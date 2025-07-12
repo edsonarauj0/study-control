@@ -27,7 +27,6 @@ import {
   atualizarAtividade,
   Atividade,
 } from '@/services/atividadesService'
-import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/Button'
 import {
   Breadcrumb,
@@ -37,6 +36,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { FormOrganizacoes } from '@/components/forms/OrganizacaoForm'
+import { FormTopicos } from '@/components/forms/TopicoForm'
+import { FormAtividades } from '@/components/forms/AtividadeForm'
+import { NovaMateria } from '@/types/materias'
+import { FormularioMaterias } from '@/components/forms/MateriaForm'
 
 export default function Settings() {
   const [orgs, setOrgs] = useState<Organizacao[]>([])
@@ -45,7 +49,6 @@ export default function Settings() {
 
   const [materias, setMaterias] = useState<Materia[]>([])
   const [selectedMateria, setSelectedMateria] = useState<Materia | null>(null)
-  const [novaMateria, setNovaMateria] = useState({ nome: '', professor: '', emoji: '' })
 
   const [topicos, setTopicos] = useState<Topico[]>([])
   const [selectedTopico, setSelectedTopico] = useState<Topico | null>(null)
@@ -114,7 +117,7 @@ export default function Settings() {
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage> {selectedTopico.nome}</BreadcrumbPage>
+              <BreadcrumbPage>{selectedTopico.nome}</BreadcrumbPage>
             </BreadcrumbItem>
           </>
         )}
@@ -126,33 +129,37 @@ export default function Settings() {
     const o = await fetchOrganizacoes()
     setOrgs(o)
   }
-  useEffect(() => {
-    carregarOrganizacoes()
-  }, [])
 
   const carregarMaterias = async () => {
     if (!selectedOrg) return
     const m = await fetchMaterias(selectedOrg.id)
     setMaterias(m)
   }
-  useEffect(() => {
-    if (selectedOrg) carregarMaterias()
-  }, [selectedOrg])
 
   const carregarTopicos = async () => {
     if (!selectedMateria) return
     const t = await fetchTopicos(selectedMateria.id)
     setTopicos(t)
   }
-  useEffect(() => {
-    if (selectedMateria) carregarTopicos()
-  }, [selectedMateria])
 
   const carregarAtividades = async () => {
     if (!selectedTopico) return
     const a = await fetchAtividades(selectedTopico.id)
     setAtividades(a)
   }
+
+  useEffect(() => {
+    carregarOrganizacoes()
+  }, [])
+
+  useEffect(() => {
+    if (selectedOrg) carregarMaterias()
+  }, [selectedOrg])
+
+  useEffect(() => {
+    if (selectedMateria) carregarTopicos()
+  }, [selectedMateria])
+
   useEffect(() => {
     if (selectedTopico) carregarAtividades()
   }, [selectedTopico])
@@ -172,13 +179,12 @@ export default function Settings() {
     carregarOrganizacoes()
   }
 
-  const addMateria = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const addMateria = async (data: NovaMateria) => {
     if (!selectedOrg) return
-    const { nome, professor, emoji } = novaMateria
-    if (!nome || !professor) return
-    await adicionarMateria({ ...novaMateria, organizacaoId: selectedOrg.id })
-    setNovaMateria({ nome: '', professor: '', emoji: '' })
+    await adicionarMateria({
+      ...data,
+      organizacaoId: selectedOrg.id
+    })
     carregarMaterias()
   }
 
@@ -224,190 +230,49 @@ export default function Settings() {
 
   if (!selectedOrg) {
     return (
-      <div className="space-y-8">
-        <BreadcrumbNav />
-        <section>
-          <h2 className="text-lg font-semibold mb-2">Organizações</h2>
-          <form onSubmit={addOrganizacao} className="flex gap-2 mb-2">
-            <Input
-              value={novoOrg}
-              onChange={e => setNovoOrg(e.target.value)}
-              placeholder="Nome da organização"
-            />
-            <Button type="submit">Adicionar</Button>
-          </form>
-          <ul className="space-y-1">
-            {orgs.map(org => (
-              <li key={org.id} className="flex justify-between gap-2">
-                <span>{org.nome}</span>
-                <div className="space-x-2">
-                  <Button size="sm" onClick={() => setSelectedOrg(org)}>
-                    Gerenciar
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => editOrganizacao(org)}>
-                    Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      deletarOrganizacao(org.id).then(() => {
-                        if ((selectedOrg as Organizacao | null)?.id === org.id) setSelectedOrg(null)
-                        carregarOrganizacoes()
-                      })
-                    }}
-                  >
-                    Excluir
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
+      <FormOrganizacoes
+        orgs={orgs}
+        novoOrg={novoOrg}
+        setNovoOrg={setNovoOrg}
+        addOrganizacao={addOrganizacao}
+        editOrganizacao={editOrganizacao}
+        deletarOrganizacao={async (id: Organizacao['id']) => {
+          await deletarOrganizacao(id)
+          if ((selectedOrg as Organizacao | null)?.id === id) setSelectedOrg(null)
+          carregarOrganizacoes()
+        }}
+        setSelectedOrg={setSelectedOrg}
+        BreadcrumbNav={<BreadcrumbNav />}
+      />
     )
   }
 
   if (!selectedMateria) {
     return (
       <div className="space-y-8">
-        <Button size="sm" variant="outline" onClick={() => setSelectedOrg(null)}>
-          Voltar
-        </Button>
-        <BreadcrumbNav />
-        <section>
-          <h2 className="text-lg font-semibold mb-2">
-            Matérias de {selectedOrg.nome}
-          </h2>
-          <form onSubmit={addMateria} className="flex flex-col gap-2 mb-2">
-            <Input
-              value={novaMateria.nome}
-              onChange={e => setNovaMateria({ ...novaMateria, nome: e.target.value })}
-              placeholder="Nome"
-            />
-            <Input
-              value={novaMateria.professor}
-              onChange={e => setNovaMateria({ ...novaMateria, professor: e.target.value })}
-              placeholder="Professor"
-            />
-            <Input
-              value={novaMateria.emoji}
-              onChange={e => setNovaMateria({ ...novaMateria, emoji: e.target.value })}
-              placeholder="Emoji"
-            />
-            <Button type="submit">Adicionar</Button>
-          </form>
-          <ul className="space-y-1">
-            {materias.map(mat => (
-              <li key={mat.id} className="flex justify-between gap-2">
-                <span>
-                  {mat.emoji ? `${mat.emoji} ` : ''}
-                  {mat.nome}
-                </span>
-                <div className="space-x-2">
-                  <Button size="sm" onClick={() => setSelectedMateria(mat)}>
-                    Gerenciar
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => editMateria(mat)}>
-                    Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      deletarMateria(mat.id, mat.organizacaoId).then(carregarMaterias)
-                    }}
-                  >
-                    Excluir
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    )
-  }
+        {<BreadcrumbNav />}
+        <FormularioMaterias
+          onSubmit={addMateria}
+          onCancel={() => setSelectedOrg(null)}
+        />
 
-  if (!selectedTopico) {
-    return (
-      <div className="space-y-8">
-        <Button size="sm" variant="outline" onClick={() => setSelectedMateria(null)}>
-          Voltar 2
-        </Button>
-        <BreadcrumbNav />
-        <section>
-          <h2 className="text-lg font-semibold mb-2">
-            Tópicos de {selectedMateria.nome}
-          </h2>
-          <form onSubmit={addTopico} className="flex gap-2 mb-2">
-            <Input
-              value={novoTopico}
-              onChange={e => setNovoTopico(e.target.value)}
-              placeholder="Nome do tópico"
-            />
-            <Button type="submit">Adicionar</Button>
-          </form>
-          <ul className="space-y-1">
-            {topicos.map(top => (
-              <li key={top.id} className="flex justify-between gap-2">
-                <span>{top.nome}</span>
-                <div className="space-x-2">
-                  <Button size="sm" onClick={() => setSelectedTopico(top)}>
-                    Gerenciar
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => editTopico(top)}>
-                    Editar
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => {
-                      deletarTopico(top.id, top.materiaId).then(carregarTopicos)
-                    }}
-                  >
-                    Excluir
-                  </Button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-    )
-  }
-
-  return (
-    <div className="space-y-8">
-      <Button size="sm" variant="outline" onClick={() => setSelectedTopico(null)}>
-        Voltar 3
-      </Button>
-      <BreadcrumbNav />
-      <section>
-        <h2 className="text-lg font-semibold mb-2">
-          Atividades de {selectedTopico.nome}
-        </h2>
-        <form onSubmit={addAtividade} className="flex gap-2 mb-2">
-          <Input
-            value={novaAtividade}
-            onChange={e => setNovaAtividade(e.target.value)}
-            placeholder="Nome da atividade"
-          />
-          <Button type="submit">Adicionar</Button>
-        </form>
-        <ul className="space-y-1">
-          {atividades.map(act => (
-            <li key={act.id} className="flex justify-between gap-2">
-              <span>{act.nome}</span>
-              <div className="space-x-2">
-                <Button size="sm" variant="outline" onClick={() => editAtividade(act)}>
+        <ul className="space-y-1 mt-4">
+          {materias.map(mat => (
+            <li key={mat.id} className="flex justify-between items-center">
+              <span>{mat.emoji || '📚'} {mat.nome}</span>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => setSelectedMateria(mat)}>
+                  Gerenciar
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => editMateria(mat)}>
                   Editar
                 </Button>
                 <Button
                   size="sm"
                   variant="destructive"
-                  onClick={() => {
-                    deletarAtividade(act.id, act.topicoId).then(carregarAtividades)
+                  onClick={async () => {
+                    await deletarMateria(mat.id, mat.organizacaoId)
+                    carregarMaterias()
                   }}
                 >
                   Excluir
@@ -416,8 +281,44 @@ export default function Settings() {
             </li>
           ))}
         </ul>
-      </section>
-    </div>
+      </div>
+    )
+  }
+
+  if (!selectedTopico) {
+    return (
+      <FormTopicos
+        topicos={topicos}
+        novoTopico={novoTopico}
+        setNovoTopico={setNovoTopico}
+        addTopico={addTopico}
+        editTopico={editTopico}
+        deletarTopico={async (id, materiaId) => {
+          await deletarTopico(id, materiaId)
+          carregarTopicos()
+        }}
+        setSelectedTopico={setSelectedTopico}
+        selectedMateriaNome={selectedMateria?.nome || ''}
+        onVoltar={() => setSelectedMateria(null)}
+        BreadcrumbNav={<BreadcrumbNav />}
+      />
+    )
+  }
+
+  return (
+    <FormAtividades
+      atividades={atividades}
+      novaAtividade={novaAtividade}
+      setNovaAtividade={setNovaAtividade}
+      addAtividade={addAtividade}
+      editAtividade={editAtividade}
+      deletarAtividade={async (id, topicoId) => {
+        await deletarAtividade(id, topicoId)
+        carregarAtividades()
+      }}
+      selectedTopicoNome={selectedTopico?.nome || ''}
+      onVoltar={() => setSelectedTopico(null)}
+      BreadcrumbNav={<BreadcrumbNav />}
+    />
   )
 }
-

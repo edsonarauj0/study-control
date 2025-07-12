@@ -9,14 +9,6 @@ import {
 } from "lucide-react"
 import { Link as RouterLink } from "react-router-dom"
 import { useActiveRoute } from "@/hooks/useActiveRoute"
-
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -26,6 +18,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from '@/components/ui/sidebar'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/DropdownMenu"
 
 export function NavFavorites({
     favorites,

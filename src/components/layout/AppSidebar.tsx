@@ -16,12 +16,6 @@ import {
   LogOut,
 } from "lucide-react"
 
-import { NavFavorites } from './nav-favorites'
-import { NavMain } from './nav-main'
-import { NavSecondary } from './nav-secondary'
-import { NavMaterias } from './nav-materias'
-import NavHierarchy from './NavHierarchy'
-import { TeamSwitcher } from './team-switcher'
 import { logout } from '@/services/authService'
 import {
   Sidebar,
@@ -29,6 +23,11 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
+import { TeamSwitcher } from "../navigation/TeamSwitcher"
+import { MainNav } from "../navigation/MainNav"
+import { NavFavorites } from "../navigation/NavFavorites"
+import { NavMaterias } from "../navigation/NavMaterias"
+import { NavSecondary } from "../navigation/NavSecondary"
 
 // This is sample data.
 const data = {
@@ -49,32 +48,16 @@ const data = {
       icon: Sparkles,
     },
     {
-      title: "Home",
-      url: "#",
-      icon: Home,
-    },
-    {
-      title: "Inbox",
-      url: "#",
-      icon: Inbox,
-      badge: "10",
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Calendar",
-      url: "#",
-      icon: Calendar,
-    },
-    {
       title: "Settings",
       url: "/settings",
       icon: Settings2,
     },
+  ],
+  navSecondary: [
     {
-      title: "Templates",
+      title: "Support",
       url: "#",
-      icon: Blocks,
+      icon: MessageCircleQuestion,
     },
     {
       title: "Trash",
@@ -82,21 +65,17 @@ const data = {
       icon: Trash2,
     },
     {
-      title: "Help",
+      title: "Logout",
       url: "#",
-      icon: MessageCircleQuestion,
-    },
-    {
-      title: "Sair",
       icon: LogOut,
-      onClick: () => logout(),
+      onClick: logout
     },
   ],
   favorites: [
     {
-      name: "Project Management & Task Tracking",
+      name: "Project Planning & Task Tracking",
       url: "#",
-      emoji: "📊",
+      emoji: "📋",
     },
     {
       name: "Family Recipe Collection & Meal Planning",
@@ -114,34 +93,9 @@ const data = {
       emoji: "📚",
     },
     {
-      name: "Sustainable Gardening Tips & Plant Care",
+      name: "Sustainable Garden & Plant Care Log",
       url: "#",
       emoji: "🌱",
-    },
-    {
-      name: "Language Learning Progress & Resources",
-      url: "#",
-      emoji: "🗣️",
-    },
-    {
-      name: "Home Renovation Ideas & Budget Tracker",
-      url: "#",
-      emoji: "🏠",
-    },
-    {
-      name: "Personal Finance & Investment Portfolio",
-      url: "#",
-      emoji: "💰",
-    },
-    {
-      name: "Movie & TV Show Watchlist with Reviews",
-      url: "#",
-      emoji: "🎬",
-    },
-    {
-      name: "Daily Habit Tracker & Goal Setting",
-      url: "#",
-      emoji: "✅",
     },
   ],
   workspaces: [
@@ -155,35 +109,24 @@ const data = {
           emoji: "📔",
         },
         {
-          name: "Health & Wellness Tracker",
-          url: "#",
-          emoji: "🍏",
-        },
-        {
-          name: "Personal Growth & Learning Goals",
-          url: "#",
-          emoji: "🌟",
-        },
-      ],
-    },
-    {
-      name: "Professional Development",
-      emoji: "💼",
-      pages: [
-        {
-          name: "Career Objectives & Milestones",
+          name: "Goal Setting & Progress Tracking",
           url: "#",
           emoji: "🎯",
         },
         {
-          name: "Skill Acquisition & Training Log",
+          name: "Habit Tracker & Wellness Log",
           url: "#",
-          emoji: "🧠",
+          emoji: "⚡",
         },
         {
-          name: "Networking Contacts & Events",
+          name: "Financial Planning & Budget Review",
           url: "#",
-          emoji: "🤝",
+          emoji: "💰",
+        },
+        {
+          name: "Learning Goals & Skill Development",
+          url: "#",
+          emoji: "🧠",
         },
       ],
     },
@@ -192,7 +135,7 @@ const data = {
       emoji: "🎨",
       pages: [
         {
-          name: "Writing Ideas & Story Outlines",
+          name: "Writing Ideas & Story Development",
           url: "#",
           emoji: "✍️",
         },
@@ -258,7 +201,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
         <TeamSwitcher />
-        <NavMain items={data.navMain} />
+        <MainNav items={data.navMain} />
       </SidebarHeader>
       <SidebarContent>
         <NavFavorites favorites={data.favorites} />
@@ -269,4 +212,3 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     </Sidebar>
   )
 }
-

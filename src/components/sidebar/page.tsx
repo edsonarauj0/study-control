@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
-import { AppSidebar } from '@/components/app-sidebar'
-import { NavActions } from '@/components/nav-actions'
+import { AppSidebar } from '@/components/layout/AppSidebar'
+import { NavActions } from '@/components/navigation/NavActions'
 import { useActiveRoute } from '@/hooks/useActiveRoute'
 import {
     Breadcrumb,
@@ -47,7 +47,7 @@ export default function Sidebar({ children }: SidebarProps) {
                         <NavActions />
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 px-4 py-10">
+                <div className="flex flex-1 flex-col gap-4 w-full max-w-4xl mx-auto px-4 md:px-8 py-10">
                     {children}
                 </div>
             </SidebarInset>
