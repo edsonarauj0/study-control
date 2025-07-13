@@ -41,6 +41,7 @@ import { FormTopicos } from '@/components/forms/TopicoForm'
 import { FormAtividades } from '@/components/forms/AtividadeForm'
 import { NovaMateria } from '@/types/materias'
 import { FormularioMaterias } from '@/components/forms/MateriaForm'
+import { getAuth } from 'firebase/auth'
 
 export default function Settings() {
   const [orgs, setOrgs] = useState<Organizacao[]>([])
@@ -137,14 +138,14 @@ export default function Settings() {
   }
 
   const carregarTopicos = async () => {
-    if (!selectedMateria) return
-    const t = await fetchTopicos(selectedMateria.id)
+    if (!selectedMateria || !selectedOrg) return
+    const t = await fetchTopicos(selectedOrg.id, selectedMateria.id)
     setTopicos(t)
   }
 
   const carregarAtividades = async () => {
-    if (!selectedTopico) return
-    const a = await fetchAtividades(selectedTopico.id)
+    if (!selectedTopico || !selectedMateria || !selectedOrg) return
+    const a = await fetchAtividades(selectedOrg.id, selectedMateria.id, selectedTopico.id)
     setAtividades(a)
   }
 
@@ -167,7 +168,9 @@ export default function Settings() {
   const addOrganizacao = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!novoOrg) return
-    await adicionarOrganizacao({ nome: novoOrg })
+    const userId = getAuth().currentUser?.uid
+    if (!userId) throw new Error('Usuário não autenticado')
+    await adicionarOrganizacao({ nome: novoOrg }, userId)
     setNovoOrg('')
     carregarOrganizacoes()
   }
@@ -181,10 +184,7 @@ export default function Settings() {
 
   const addMateria = async (data: NovaMateria) => {
     if (!selectedOrg) return
-    await adicionarMateria({
-      ...data,
-      organizacaoId: selectedOrg.id
-    })
+    await adicionarMateria(selectedOrg.id, { ...data })
     carregarMaterias()
   }
 
@@ -192,15 +192,17 @@ export default function Settings() {
     const nome = prompt('Nome da matéria', mat.nome) || mat.nome
     const professor = prompt('Professor', mat.professor) || mat.professor
     const emoji = prompt('Emoji', mat.emoji ?? '') || mat.emoji || ''
-    await atualizarMateria(mat.id, mat.organizacaoId, { nome, professor, emoji })
+    await atualizarMateria(mat.organizacaoId ?? '', mat.id, { nome, professor, emoji })
     carregarMaterias()
   }
 
   const addTopico = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedMateria) return
-    if (!novoTopico) return
-    await adicionarTopico({ nome: novoTopico, materiaId: selectedMateria.id })
+    if (!selectedMateria || !selectedOrg) return
+    await adicionarTopico(selectedOrg.id, selectedMateria.id, {
+      nome: novoTopico,
+      descricao: '',
+    })
     setNovoTopico('')
     carregarTopicos()
   }
@@ -208,15 +210,16 @@ export default function Settings() {
   const editTopico = async (top: Topico) => {
     const nome = prompt('Nome do tópico', top.nome)
     if (!nome) return
-    await atualizarTopico(top.id, top.materiaId, { nome })
+    await atualizarTopico(selectedOrg?.id ?? '', selectedMateria?.id ?? '', top.id, { nome })
     carregarTopicos()
   }
 
   const addAtividade = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedTopico) return
-    if (!novaAtividade) return
-    await adicionarAtividade({ nome: novaAtividade, topicoId: selectedTopico.id })
+    if (!selectedTopico || !selectedMateria || !selectedOrg) return
+    await adicionarAtividade(selectedOrg.id, selectedMateria.id, selectedTopico.id, {
+      nome: novaAtividade,
+    })
     setNovaAtividade('')
     carregarAtividades()
   }
@@ -224,7 +227,25 @@ export default function Settings() {
   const editAtividade = async (act: Atividade) => {
     const nome = prompt('Nome da atividade', act.nome)
     if (!nome) return
-    await atualizarAtividade(act.id, act.topicoId, { nome })
+    await atualizarAtividade(selectedOrg?.id ?? '', selectedMateria?.id ?? '', selectedTopico?.id ?? '', act.id, { nome })
+    carregarAtividades()
+  }
+
+  const deletarMateria = async (materiaId: string, organizacaoId?: string) => {
+    if (!organizacaoId) throw new Error('Organização não selecionada')
+    await deletarMateria(organizacaoId, materiaId)
+    carregarMaterias()
+  }
+
+  const deletarTopico = async (topicoId: string, materiaId: string, organizacaoId: string) => {
+    if (!organizacaoId || !materiaId) throw new Error('Organização ou matéria não selecionada')
+    await deletarTopico(organizacaoId, materiaId, topicoId)
+    carregarTopicos()
+  }
+
+  const deletarAtividade = async (atividadeId: string, topicoId: string, materiaId: string, organizacaoId: string) => {
+    if (!organizacaoId || !materiaId || !topicoId) throw new Error('Organização, matéria ou tópico não selecionado')
+    await deletarAtividade(organizacaoId, materiaId, topicoId, atividadeId)
     carregarAtividades()
   }
 
@@ -294,7 +315,7 @@ export default function Settings() {
         addTopico={addTopico}
         editTopico={editTopico}
         deletarTopico={async (id, materiaId) => {
-          await deletarTopico(id, materiaId)
+          await deletarTopico(id, materiaId, selectedOrg?.id ?? '')
           carregarTopicos()
         }}
         setSelectedTopico={setSelectedTopico}
@@ -313,7 +334,7 @@ export default function Settings() {
       addAtividade={addAtividade}
       editAtividade={editAtividade}
       deletarAtividade={async (id, topicoId) => {
-        await deletarAtividade(id, topicoId)
+        await deletarAtividade(id, topicoId, selectedMateria?.id ?? '', selectedOrg?.id ?? '')
         carregarAtividades()
       }}
       selectedTopicoNome={selectedTopico?.nome || ''}

@@ -38,7 +38,8 @@ import {
   StarOff,
   Trash2,
   Link as LinkIcon,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useModal } from '@/contexts/ModalContext'
@@ -63,6 +64,7 @@ export function NavMaterias() {
 
   const [visibleCount, setVisibleCount] = useState(5);
   const [topicosMap, setTopicosMap] = useState<Record<string, Topico[]>>({})
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -82,10 +84,7 @@ export function NavMaterias() {
     openModal(
       <FormularioMaterias
         onSubmit={async (data) => {
-          await adicionarMateria({
-            ...data,
-            organizacaoId: activeOrganizacao.id
-          });
+          await adicionarMateria(activeOrganizacao.id, data);
           const mats = await fetchMaterias(activeOrganizacao.id);
           setMaterias(mats);
           closeModal();
@@ -101,7 +100,7 @@ export function NavMaterias() {
 
   const confirmDeleteMateria = async () => {
     if (materiaToDelete && activeOrganizacao) {
-      await deletarMateria(materiaToDelete.id, materiaToDelete.organizacaoId)
+      await deletarMateria(materiaToDelete.id, materiaToDelete.organizacaoId ?? '')
       const mats = await fetchMaterias(activeOrganizacao.id)
       setMaterias(mats)
       setIsDeleteDialogOpen(false)
@@ -120,7 +119,7 @@ export function NavMaterias() {
           id: materia.id,
           nome: materia.nome,
           emoji: materia.emoji || '📚',
-          organizacaoId: materia.organizacaoId,
+          organizacaoId: materia.organizacaoId ?? '',
           professor: materia.professor
         });
         toast.success(`${materia.nome} adicionada aos favoritos`);
@@ -132,10 +131,9 @@ export function NavMaterias() {
   };
 
   const handleLoadTopicos = async (materiaId: string) => {
-    // Carregar tópicos se ainda não foram carregados
     if (!topicosMap[materiaId]) {
       try {
-        const topicos = await fetchTopicos(materiaId)
+        const topicos = await fetchTopicos(activeOrganizacao.id, materiaId)
         setTopicosMap(prev => ({ ...prev, [materiaId]: topicos }))
       } catch (error) {
         console.error('Erro ao buscar tópicos:', error)
@@ -159,14 +157,28 @@ export function NavMaterias() {
             const materiaUrl = `/organizacao/${activeOrganizacao.id}/materia/${mat.id}`;
             const isActive = isActiveRoute(materiaUrl);
             const topicos = topicosMap[mat.id] || [];
-            
+            const isOpen = openMap[mat.id] || false;
+
             return (
-              <Collapsible key={mat.id} onOpenChange={(open) => open && handleLoadTopicos(mat.id)}>
+              <Collapsible
+                key={mat.id}
+                open={isOpen}
+                onOpenChange={(open) => {
+                  setOpenMap(prev => ({ ...prev, [mat.id]: open }));
+                  if (open) {
+                    handleLoadTopicos(mat.id);
+                  }
+                }}
+              >
                 <SidebarMenuItem>
                   <div className="flex items-center w-full group">
                     <CollapsibleTrigger asChild>
                       <button className="flex items-center justify-center h-4 w-4 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground rounded-sm shrink-0">
-                        <ChevronRight className="h-3 w-3 transition-transform duration-200 data-[state=open]:rotate-90" />
+                        {isOpen ? (
+                          <ChevronDown className="h-3 w-3" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3" />
+                        )}
                       </button>
                     </CollapsibleTrigger>
                     <SidebarMenuButton asChild isActive={isActive} className="flex-1 min-w-0">
@@ -218,20 +230,18 @@ export function NavMaterias() {
                     </DropdownMenu>
                   </div>
                 </SidebarMenuItem>
-                
+
                 <CollapsibleContent className="space-y-1">
-                  {/* Tópicos expandidos */}
                   {topicos.length > 0 ? (
-                    <div className="ml-4 border-l border-sidebar-border pl-4 space-y-1">
+                    <div className="ml-4 border-sidebar-border pl-4 space-y-1">
                       {topicos.map(topico => {
                         const topicoUrl = `/organizacao/${activeOrganizacao.id}/materia/${mat.id}/topico/${topico.id}`;
                         const isTopicoActive = isActiveRoute(topicoUrl);
-                        
+
                         return (
                           <SidebarMenuItem key={topico.id}>
                             <SidebarMenuButton asChild isActive={isTopicoActive} className="text-sm min-w-0">
                               <Link to={topicoUrl} className="flex items-center min-w-0 w-full">
-                                <span className="h-3 w-3 shrink-0">•</span>
                                 <span className="truncate min-w-0 block">{topico.nome}</span>
                               </Link>
                             </SidebarMenuButton>
@@ -256,7 +266,6 @@ export function NavMaterias() {
                 <span>Carregar mais</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
           )}
         </SidebarMenu>
       </SidebarGroupContent>

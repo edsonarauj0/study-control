@@ -1,11 +1,12 @@
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
-import { fetchOrganizacoes, Organizacao } from '@/services/organizacoesService'
+import { fetchOrganizacoes, fetchOrganizacaoTree, Organizacao } from '@/services/organizacoesService'
 
 interface OrganizacaoContextValue {
   organizacoes: Organizacao[]
   activeOrganizacao: Organizacao | null
   setActiveOrganizacao: (org: Organizacao) => void
   reloadOrganizacoes: () => Promise<void>
+  organizacaoTree: any | null
 }
 
 const OrganizacaoContext = createContext<OrganizacaoContextValue | undefined>(
@@ -17,7 +18,7 @@ export function OrganizacaoProvider({ children }: { children: ReactNode }) {
   const [activeOrganizacao, setActiveOrganizacao] = useState<Organizacao | null>(
     null
   )
-
+  const [organizacaoTree, setOrganizacaoTree] = useState<any | null>(null)
   const reloadOrganizacoes = async () => {
     const orgs = await fetchOrganizacoes()
     setOrganizacoes(orgs)
@@ -31,9 +32,19 @@ export function OrganizacaoProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  useEffect(() => {
+    const loadOrganizacaoTree = async () => {
+      if (activeOrganizacao) {
+        const tree = await fetchOrganizacaoTree(activeOrganizacao.id)
+        setOrganizacaoTree(tree)
+      }
+    }
+    loadOrganizacaoTree()
+  }, [activeOrganizacao])
+
   return (
     <OrganizacaoContext.Provider
-      value={{ organizacoes, activeOrganizacao, setActiveOrganizacao, reloadOrganizacoes }}
+      value={{ organizacoes, activeOrganizacao, setActiveOrganizacao, reloadOrganizacoes, organizacaoTree }}
     >
       {children}
     </OrganizacaoContext.Provider>

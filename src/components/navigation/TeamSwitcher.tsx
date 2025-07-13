@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { ChevronDown, Building2 } from "lucide-react"
 import {
@@ -9,9 +8,18 @@ import {
 
 import { useOrganizacao } from "@/contexts/OrganizacaoContext"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuShortcut, DropdownMenuTrigger } from "../ui/DropdownMenu"
+import { Organizacao } from "@/services/organizacoesService";
+import { useNavigate } from "react-router-dom";
 
 export function TeamSwitcher() {
-    const { organizacoes, activeOrganizacao, setActiveOrganizacao } = useOrganizacao()
+    const { organizacoes, activeOrganizacao, setActiveOrganizacao } = useOrganizacao();
+    const navigate = useNavigate();
+
+    const handleOrganizationChange = (org: Organizacao): void => {
+        setActiveOrganizacao(org);
+        navigate("/dashboard"); // Redireciona para a rota /dashboard
+    };
+
     const activeTeam = activeOrganizacao || organizacoes[0]
 
     if (!activeTeam) {
@@ -43,7 +51,7 @@ export function TeamSwitcher() {
                         {organizacoes.map((org, index) => (
                             <DropdownMenuItem
                                 key={org.id}
-                                onClick={() => setActiveOrganizacao(org)}
+                                onClick={() => handleOrganizationChange(org)}
                                 className="gap-2 p-2"
                             >
                                 <div className="flex size-6 items-center justify-center rounded-sm border">

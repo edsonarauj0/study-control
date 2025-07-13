@@ -1,23 +1,40 @@
-import { db } from '@/firebase';
-import { collection, getDocs, addDoc, deleteDoc, doc, query, where } from 'firebase/firestore';
+// services/favoritos.ts
+
+import { auth, db } from '@/firebase';
+// A CORREÇÃO ESTÁ AQUI 👇
+import { collection, getDocs, addDoc, deleteDoc, doc, query, where, getDoc, setDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
 export interface FavoriteMateria {
-  id?: string; // ID do documento no Firestore
-  materiaId: string; // ID da matéria
-  userId: string; // ID do usuário
+  id?: string;
+  materiaId: string;
   nome: string;
   emoji: string;
   organizacaoId: string;
   professor: string;
   createdAt: Date;
+  // userId não é mais necessário no documento
 }
 
-// Buscar favoritos de um usuário
-export const fetchFavoritesMaterias = async (userId: string): Promise<FavoriteMateria[]> => {
-  const favoritesRef = collection(db, 'favoritos');
-  const q = query(favoritesRef, where('userId', '==', userId));
-  const snapshot = await getDocs(q);
-  
+export const isMateriaFavorite = async (organizacaoId: string, materiaId: string): Promise<boolean> => {
+  const favoritesRef = getFavoritesCollectionRef(organizacaoId);
+  const docSnap = await getDoc(doc(favoritesRef, materiaId));
+  return docSnap.exists();
+};
+
+
+
+
+const getFavoritesCollectionRef = (organizacaoId: string) => {
+  const userId = getAuth().currentUser?.uid;
+  if (!userId) throw new Error('Usuário não autenticado');
+  return collection(db, 'users', userId, 'organizacoes', organizacaoId, 'favoritos');
+};
+
+export const fetchFavoritesMaterias = async (organizacaoId: string): Promise<FavoriteMateria[]> => {
+  debugger
+  const favoritesRef = getFavoritesCollectionRef(organizacaoId);
+  const snapshot = await getDocs(favoritesRef);
   return snapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data(),
@@ -25,58 +42,21 @@ export const fetchFavoritesMaterias = async (userId: string): Promise<FavoriteMa
   })) as FavoriteMateria[];
 };
 
-// Adicionar matéria aos favoritos
 export const addMateriaToFavorites = async (favorite: Omit<FavoriteMateria, 'id' | 'createdAt'>) => {
-  const favoritesRef = collection(db, 'favoritos');
-  
-  // Verificar se já não está nos favoritos
-  const q = query(
-    favoritesRef, 
-    where('userId', '==', favorite.userId),
-    where('materiaId', '==', favorite.materiaId)
-  );
-  const existingSnapshot = await getDocs(q);
-  
-  if (!existingSnapshot.empty) {
-    throw new Error('Matéria já está nos favoritos');
+  const favoritesRef = getFavoritesCollectionRef(favorite.organizacaoId);
+  const favoriteDoc = await getDoc(doc(favoritesRef, favorite.materiaId));
+  if (favoriteDoc.exists()) {
+    console.warn(`Matéria com ID ${favorite.materiaId} já está nos favoritos.`);
+    return;
   }
-  
-  const docRef = await addDoc(favoritesRef, {
+
+  await setDoc(doc(favoritesRef, favorite.materiaId), {
     ...favorite,
     createdAt: new Date()
   });
-  
-  return docRef;
 };
 
-// Remover matéria dos favoritos
-export const removeMateriaFromFavorites = async (userId: string, materiaId: string) => {
-  const favoritesRef = collection(db, 'favoritos');
-  const q = query(
-    favoritesRef, 
-    where('userId', '==', userId),
-    where('materiaId', '==', materiaId)
-  );
-  const snapshot = await getDocs(q);
-  
-  if (snapshot.empty) {
-    throw new Error('Favorito não encontrado');
-  }
-  
-  // Deletar o primeiro documento encontrado (deve ser único)
-  const favoriteDoc = snapshot.docs[0];
-  await deleteDoc(doc(db, 'favoritos', favoriteDoc.id));
-};
-
-// Verificar se uma matéria está nos favoritos
-export const isMateriaFavorite = async (userId: string, materiaId: string): Promise<boolean> => {
-  const favoritesRef = collection(db, 'favoritos');
-  const q = query(
-    favoritesRef, 
-    where('userId', '==', userId),
-    where('materiaId', '==', materiaId)
-  );
-  const snapshot = await getDocs(q);
-  
-  return !snapshot.empty;
+export const removeMateriaFromFavorites = async (organizacaoId: string, materiaId: string) => {
+  const favoritesRef = getFavoritesCollectionRef(organizacaoId);
+  await deleteDoc(doc(favoritesRef, materiaId));
 };

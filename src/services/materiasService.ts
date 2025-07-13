@@ -1,57 +1,60 @@
-import { db } from '@/firebase';
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, collectionGroup } from 'firebase/firestore';
+// services/materias.ts
 
-// Definindo o tipo para os dados da Matéria
+import { db } from '@/firebase';
+import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
 export interface Materia {
   id: string;
   nome: string;
   professor: string;
-  organizacaoId: string;
   emoji?: string;
+  organizacaoId?: string;
 }
 
-// FUNÇÃO PARA BUSCAR MATÉRIAS. PODE FILTRAR POR ORGANIZAÇÃO SE O ID FOR PASSADO
-export const fetchMaterias = async (organizacaoId?: string): Promise<Materia[]> => {
-  const materiasRef = organizacaoId
-    ? collection(db, 'organizacoes', organizacaoId, 'materias')
-    : collectionGroup(db, 'materias')
-  const snapshot = await getDocs(materiasRef)
-  return snapshot.docs.map(doc => {
-    const data = doc.data() as Omit<Materia, 'id' | 'organizacaoId'>
-    const orgId = organizacaoId ?? doc.ref.parent.parent?.id ?? ''
-    return { id: doc.id, organizacaoId: orgId, ...data }
-  })
+
+const getUserId = (): string => {
+  const user = getAuth().currentUser;
+  if (!user) throw new Error('Usuário não autenticado');
+  return user.uid;
+};
+
+const getMateriasCollectionRef = (organizacaoId: string) => {
+  const userId = getUserId();
+  return collection(db, 'users', userId, 'organizacoes', organizacaoId, 'materias');
 }
 
-// FUNÇÃO PARA ADICIONAR UMA NOVA MATÉRIA
-export const adicionarMateria = async (novaMateria: Omit<Materia, 'id'>) => {
-  const { organizacaoId, ...dados } = novaMateria
-  const materiasRef = collection(db, 'organizacoes', organizacaoId, 'materias')
-  const docRef = await addDoc(materiasRef, dados)
-  return docRef
+export const fetchMaterias = async (organizacaoId: string): Promise<Materia[]> => {
+  const snapshot = await getDocs(getMateriasCollectionRef(organizacaoId));
+  return snapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data() as Omit<Materia, 'id' | 'organizacaoId'>,
+    organizacaoId
+  }));
 }
 
-// FUNÇÃO PARA ATUALIZAR UMA MATÉRIA
-export const atualizarMateria = async (
-  id: string,
-  organizacaoId: string,
-  dadosAtualizados: Partial<Materia>
-) => {
-  const materiaDoc = doc(db, 'organizacoes', organizacaoId, 'materias', id)
-  await updateDoc(materiaDoc, dadosAtualizados)
+export const adicionarMateria = async (organizacaoId: string, nova: Omit<Materia, 'id'>) => {
+  return addDoc(getMateriasCollectionRef(organizacaoId), nova);
 }
 
-// FUNÇÃO PARA DELETAR UMA MATÉRIA
-export const deletarMateria = async (id: string, organizacaoId: string) => {
-  const materiaDoc = doc(db, 'organizacoes', organizacaoId, 'materias', id)
-  await deleteDoc(materiaDoc)
+export const atualizarMateria = async (organizacaoId: string, materiaId: string, dadosAtualizados: Partial<Materia>) => {
+  const userId = getUserId();
+  const materiaDoc = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId);
+  await updateDoc(materiaDoc, dadosAtualizados);
 }
 
-export const fetchMateriaById = async (id: string): Promise<Materia | null> => {
-  const snap = await getDocs(collectionGroup(db, 'materias'))
-  const d = snap.docs.find(doc => doc.id === id)
-  if (!d) return null
-  const data = d.data() as Omit<Materia, 'id' | 'organizacaoId'>
-  const orgId = d.ref.parent.parent?.id ?? ''
-  return { id: d.id, organizacaoId: orgId, ...data }
+export const deletarMateria = async (organizacaoId: string, materiaId: string) => {
+  const userId = getUserId();
+  const materiaDoc = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId);
+  await deleteDoc(materiaDoc);
+}
+
+// Buscar uma matéria específica agora requer todos os IDs no caminho
+export const fetchMateriaById = async (organizacaoId: string, materiaId: string): Promise<Materia | null> => {
+  const userId = getUserId();
+  const docRef = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId);
+  const docSnap = await getDoc(docRef);
+
+  if (!docSnap.exists()) return null;
+  return { id: docSnap.id, ...docSnap.data() } as Materia;
 }

@@ -19,7 +19,7 @@ function AppContent() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return null; // O loading será exibido pelo GlobalLoading
+    return null;
   }
 
   if (!user) {

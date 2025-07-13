@@ -14,12 +14,13 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/DropdownMenu"
 import { MoreHorizontal } from "lucide-react"
 import { Link } from "react-router-dom"
+import { useOrganizacao } from '@/contexts/OrganizacaoContext';
 
 export function NavFavoritesMaterias() {
     const { favoritesMaterias, removeFromFavorites, loading } = useFavorites();
     const { isMobile } = useSidebar();
     const { isActiveRoute } = useActiveRoute();
-
+    const { activeOrganizacao } = useOrganizacao();
     if (loading) {
         return (
             <SidebarGroup className="group-data-[collapsible=icon]:hidden">
@@ -30,17 +31,17 @@ export function NavFavoritesMaterias() {
             </SidebarGroup>
         );
     }
-
-    if (favoritesMaterias.length === 0) {
-        return null;
-    }
-
     return (
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
             <SidebarGroupLabel>Favoritas</SidebarGroupLabel>
             <SidebarMenu>
                 {favoritesMaterias.map((materia) => {
-                    const materiaUrl = `/organizacao/${materia.organizacaoId}/materia/${materia.id}`;
+                    if (!materia.organizacaoId && !activeOrganizacao?.id) {
+                        console.error(`OrganizacaoId is missing for materia: ${materia.id} and no active organization is set.`);
+                        return null;
+                    }
+
+                    const materiaUrl = `/organizacao/${materia.organizacaoId || activeOrganizacao?.id}/materia/${materia.id}`;
                     const isActive = isActiveRoute(materiaUrl);
                     
                     return (

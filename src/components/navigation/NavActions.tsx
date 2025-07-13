@@ -98,13 +98,13 @@ const data = [
   ],
 ]
 
-export function NavActions() {
+export function NavActions({ materiaName }: { materiaName?: string }) {
   const [isOpen, setIsOpen] = React.useState(false)
 
   return (
     <div className="flex items-center gap-2 text-sm">
       <div className="hidden font-medium text-muted-foreground md:inline-block">
-        Edit Oct 08
+        {materiaName || ""}
       </div>
       <Button variant="ghost" size="icon" className="h-7 w-7">
         <Star />

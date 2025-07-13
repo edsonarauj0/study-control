@@ -5,44 +5,46 @@ import { useLoading } from './LoadingContext';
 
 interface AuthContextValue {
   user: User | null;
+  userId: string | null; // Add userId to the context
   loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextValue>({ user: null, loading: true });
+const AuthContext = createContext<AuthContextValue>({ user: null, userId: null, loading: true });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [userId, setUserId] = useState<string | null>(null); // State for userId
   const [loading, setLoading] = useState(true);
   const { setLoading: setGlobalLoading } = useLoading();
 
   useEffect(() => {
     let isInitialLoad = true;
-    console.log('AuthContext: useEffect started');
-    
+
     const unsubscribe = onAuthStateChanged(auth, (u) => {
-      console.log('AuthContext: onAuthStateChanged fired with user:', u ? 'logged in' : 'not logged in');
       if (isInitialLoad) {
-        console.log('AuthContext: stopping global loading (initial load)');
-        setGlobalLoading(false); // Para o loading global apenas na primeira vez
+        setGlobalLoading(false);
         isInitialLoad = false;
       }
       setUser(u);
+      setUserId(u?.uid || null); // Set userId from Firebase user
+      if (u?.uid) {
+        localStorage.setItem('userId', u.uid); // Persist userId in localStorage
+      } else {
+        localStorage.removeItem('userId'); // Clear userId if user logs out
+      }
       setLoading(false);
     });
 
-    // Inicia o loading global
-    console.log('AuthContext: starting global loading');
     setGlobalLoading(true);
-    
+
     return () => {
-      console.log('AuthContext: cleanup');
       unsubscribe();
-      setGlobalLoading(false); // Garante que o loading seja removido ao desmontar
+      setGlobalLoading(false);
     };
-  }, []); // Remove a dependência setGlobalLoading
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, userId, loading }}>
       {children}
     </AuthContext.Provider>
   );

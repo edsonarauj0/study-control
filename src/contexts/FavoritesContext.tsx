@@ -1,10 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  fetchFavoritesMaterias, 
-  addMateriaToFavorites, 
+import { useOrganizacao } from '@/contexts/OrganizacaoContext';
+import {
+  fetchFavoritesMaterias,
+  addMateriaToFavorites,
   removeMateriaFromFavorites,
-  FavoriteMateria 
+  FavoriteMateria
 } from '@/services/favoritosService';
 
 export interface FavoriteMateriaDisplay {
@@ -30,10 +31,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [favoritesMaterias, setFavoritesMaterias] = useState<FavoriteMateriaDisplay[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { activeOrganizacao } = useOrganizacao();
 
   // Carregar favoritos do Firestore
   const loadFavorites = async () => {
-    if (!user) {
+    // Nenhuma mudança aqui é estritamente necessária se o serviço usar auth.currentUser
+    if (!user || !activeOrganizacao) {
       setFavoritesMaterias([]);
       setLoading(false);
       return;
@@ -41,7 +44,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setLoading(true);
-      const favorites = await fetchFavoritesMaterias(user.uid);
+      debugger
+      const favorites = await fetchFavoritesMaterias(activeOrganizacao.id);
+
       const favoritesDisplay = favorites.map(fav => ({
         id: fav.materiaId,
         nome: fav.nome,
@@ -57,33 +62,33 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Carregar favoritos quando o usuário mudar
+
   useEffect(() => {
     loadFavorites();
-  }, [user]);
+  }, [user, activeOrganizacao?.id]); // Adicionado .id para garantir que o useEffect detecte mudanças na organização ativa
 
   const addToFavorites = async (materia: FavoriteMateriaDisplay) => {
     if (!user) {
       throw new Error('Usuário não autenticado');
     }
-
+debugger
     try {
       await addMateriaToFavorites({
         materiaId: materia.id,
-        userId: user.uid,
         nome: materia.nome,
         emoji: materia.emoji,
         organizacaoId: materia.organizacaoId,
         professor: materia.professor
       });
-      
-      // Atualizar estado local
+
       setFavoritesMaterias(prev => {
         if (prev.find(fav => fav.id === materia.id)) {
           return prev;
         }
         return [...prev, materia];
       });
+
+      await loadFavorites();
     } catch (error) {
       console.error('Erro ao adicionar aos favoritos:', error);
       throw error;
@@ -91,18 +96,16 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   };
 
   const removeFromFavorites = async (materiaId: string) => {
-    if (!user) {
-      throw new Error('Usuário não autenticado');
+    if (!user || !activeOrganizacao) {
+        throw new Error('Usuário não autenticado ou organização ativa não definida');
     }
 
     try {
-      await removeMateriaFromFavorites(user.uid, materiaId);
-      
-      // Atualizar estado local
-      setFavoritesMaterias(prev => prev.filter(fav => fav.id !== materiaId));
+        await removeMateriaFromFavorites(activeOrganizacao.id, materiaId);
+        setFavoritesMaterias(prev => prev.filter(fav => fav.id !== materiaId));
     } catch (error) {
-      console.error('Erro ao remover dos favoritos:', error);
-      throw error;
+        console.error('Erro ao remover dos favoritos:', error);
+        throw error;
     }
   };
 

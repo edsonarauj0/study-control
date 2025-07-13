@@ -1,65 +1,55 @@
+// services/topicos.ts
+
 import { db } from '@/firebase'
-import { collection, getDocs, addDoc, query, where, deleteDoc, doc, collectionGroup, updateDoc, getDoc } from 'firebase/firestore'
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth';
 
 export interface Topico {
   id: string
   nome: string
-  materiaId: string
-  organizacaoId: string
   descricao: string
+  // materiaId e organizacaoId não são mais necessários no documento
 }
 
-const topicosCollection = (materiaId: string) =>
-  collection(db, 'materias', materiaId, 'topicos')
+// Helper para a referência da coleção
+const getTopicosCollectionRef = (organizacaoId: string, materiaId: string) => {
+  const userId = getAuth().currentUser?.uid;
+  if (!userId) throw new Error('Usuário não autenticado');
+  return collection(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId, 'topicos');
+}
 
-export const fetchTopicos = async (materiaId: string): Promise<Topico[]> => {
-  const snapshot = await getDocs(topicosCollection(materiaId))
+export const fetchTopicos = async (organizacaoId: string, materiaId: string): Promise<Topico[]> => {
+  const snapshot = await getDocs(getTopicosCollectionRef(organizacaoId, materiaId));
   return snapshot.docs.map(doc => ({
     id: doc.id,
-    materiaId,
-    ...(doc.data() as Omit<Topico, 'id' | 'materiaId'>),
-  }))
+    ...(doc.data() as Omit<Topico, 'id'>),
+  }));
 }
 
-export const fetchTodosTopicos = async (): Promise<Topico[]> => {
-  const snapshot = await getDocs(collectionGroup(db, 'topicos'))
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    materiaId: doc.ref.parent.parent?.id ?? '',
-    ...(doc.data() as Omit<Topico, 'id' | 'materiaId'>),
-  }))
+export const adicionarTopico = async (organizacaoId: string, materiaId: string, novo: Omit<Topico, 'id'>) => {
+  return addDoc(getTopicosCollectionRef(organizacaoId, materiaId), novo);
 }
 
-export const adicionarTopico = async (novo: Omit<Topico, 'id'>) => {
-  const { materiaId, ...dados } = novo
-  return addDoc(topicosCollection(materiaId), dados)
+export const deletarTopico = async (organizacaoId: string, materiaId: string, topicoId: string) => {
+  const userId = getAuth().currentUser?.uid;
+  if (!userId) throw new Error('Usuário não autenticado');
+  const ref = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId, 'topicos', topicoId);
+  await deleteDoc(ref);
 }
 
-export const deletarTopico = async (id: string, materiaId: string) => {
-  const ref = doc(db, 'materias', materiaId, 'topicos', id)
-  await deleteDoc(ref)
+export const atualizarTopico = async (organizacaoId: string, materiaId: string, topicoId: string, dadosAtualizados: Partial<Topico>) => {
+  const userId = getAuth().currentUser?.uid;
+  if (!userId) throw new Error('Usuário não autenticado');
+  const ref = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId, 'topicos', topicoId);
+  await updateDoc(ref, dadosAtualizados);
 }
 
-export const atualizarTopico = async (
-  id: string,
-  materiaId: string,
-  dadosAtualizados: Partial<Topico>
-) => {
-  const ref = doc(db, 'materias', materiaId, 'topicos', id)
-  await updateDoc(ref, dadosAtualizados)
-}
-
-export const fetchTopicoById = async (materiaId: string, topicoId: string): Promise<Topico | null> => {
-  const docRef = doc(db, 'materias', materiaId, 'topicos', topicoId);
+export const fetchTopicoById = async (organizacaoId: string, materiaId: string, topicoId: string): Promise<Topico | null> => {
+  const userId = getAuth().currentUser?.uid;
+  if (!userId) throw new Error('Usuário não autenticado');
+  const docRef = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId, 'topicos', topicoId);
   const docSnap = await getDoc(docRef);
 
-  if (docSnap.exists()) {
-    return {
-      id: docSnap.id,
-      materiaId,
-      ...(docSnap.data() as Omit<Topico, 'id' | 'materiaId'>),
-    };
-  } else {
-    return null;
-  }
+  if (!docSnap.exists()) return null;
+  return { id: docSnap.id, ...docSnap.data() } as Topico;
 };
