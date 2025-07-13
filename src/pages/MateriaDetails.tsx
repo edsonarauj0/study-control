@@ -7,6 +7,7 @@ export default function MateriaDetails() {
   const { idMateria } = useParams()
   const [materia, setMateria] = useState<Materia | null>(null)
   const [topicos, setTopicos] = useState<Topico[]>([])
+  const [estudo, setEstudo] = useState<Record<string, boolean>>({})
 
   useEffect(() => {
     const load = async () => {
@@ -16,6 +17,13 @@ export default function MateriaDetails() {
       if (mat) {
         const tops = await fetchTopicos(mat.id)
         setTopicos(tops)
+        setEstudo(prev => {
+          const e = { ...prev }
+          tops.forEach(t => {
+            if (!(t.id in e)) e[t.id] = false
+          })
+          return e
+        })
       }
     }
     load()
@@ -26,7 +34,7 @@ export default function MateriaDetails() {
   }
 
   const totalTopicos = topicos.length
-  const topicosEstudados = Math.floor(totalTopicos / 2)
+  const topicosEstudados = Object.values(estudo).filter(Boolean).length
   const topicosRestantes = totalTopicos - topicosEstudados
 
   const tempoPrevisto = totalTopicos * 60 // minutos
@@ -44,6 +52,23 @@ export default function MateriaDetails() {
     <div className="space-y-6 bg-white p-4 rounded-md">
       <h1 className="text-2xl font-bold">{materia.nome}</h1>
 
+      {/* indicadores */}
+      <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="p-3 rounded-md bg-gray-100 text-center">
+          <p className="text-xs text-muted-foreground">Tópicos</p>
+          <p className="text-xl font-bold">{totalTopicos}</p>
+        </div>
+        <div className="p-3 rounded-md bg-gray-100 text-center">
+          <p className="text-xs text-muted-foreground">Estudados</p>
+          <p className="text-xl font-bold">{topicosEstudados}</p>
+        </div>
+        <div className="p-3 rounded-md bg-gray-100 text-center">
+          <p className="text-xs text-muted-foreground">Restantes</p>
+          <p className="text-xl font-bold">{topicosRestantes}</p>
+        </div>
+      </section>
+
+      {/* desempenho */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Desempenho</h2>
         <div className="w-full h-4 bg-gray-200 rounded">
@@ -60,17 +85,35 @@ export default function MateriaDetails() {
         </ul>
       </section>
 
+      {/* controle de estudo */}
       <section className="space-y-2">
-        <h2 className="text-lg font-semibold">Tópicos</h2>
-        <ul className="list-disc pl-4">
-          <li>Total: {totalTopicos}</li>
-          <li>Estudados: {topicosEstudados}</li>
-          <li>Restantes: {topicosRestantes}</li>
+        <h2 className="text-lg font-semibold">Controle de estudo</h2>
+        <ul className="space-y-1">
+          {topicos.map(t => (
+            <li key={t.id} className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                className="size-4"
+                checked={estudo[t.id] || false}
+                onChange={() =>
+                  setEstudo(e => ({ ...e, [t.id]: !e[t.id] }))
+                }
+              />
+              <span>{t.nome}</span>
+            </li>
+          ))}
         </ul>
       </section>
 
+      {/* tempo de estudo */}
       <section className="space-y-2">
         <h2 className="text-lg font-semibold">Tempo de estudo</h2>
+        <div className="w-full h-4 bg-gray-200 rounded">
+          <div
+            className="h-full bg-blue-500 rounded"
+            style={{ width: `${Math.round((tempoEstudado / (tempoPrevisto || 1)) * 100)}%` }}
+          />
+        </div>
         <ul className="list-disc pl-4">
           <li>Previsto: {tempoPrevisto} minutos</li>
           <li>Já estudados: {tempoEstudado} minutos</li>
