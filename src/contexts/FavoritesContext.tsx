@@ -44,9 +44,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
     try {
       setLoading(true);
-      debugger
       const favorites = await fetchFavoritesMaterias(activeOrganizacao.id);
-
       const favoritesDisplay = favorites.map(fav => ({
         id: fav.materiaId,
         nome: fav.nome,
@@ -71,7 +69,6 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     if (!user) {
       throw new Error('Usuário não autenticado');
     }
-debugger
     try {
       await addMateriaToFavorites({
         materiaId: materia.id,

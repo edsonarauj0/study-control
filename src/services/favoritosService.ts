@@ -32,7 +32,6 @@ const getFavoritesCollectionRef = (organizacaoId: string) => {
 };
 
 export const fetchFavoritesMaterias = async (organizacaoId: string): Promise<FavoriteMateria[]> => {
-  debugger
   const favoritesRef = getFavoritesCollectionRef(organizacaoId);
   const snapshot = await getDocs(favoritesRef);
   return snapshot.docs.map(doc => ({
