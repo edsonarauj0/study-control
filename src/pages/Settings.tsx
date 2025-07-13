@@ -54,6 +54,8 @@ export default function Settings() {
   const [topicos, setTopicos] = useState<Topico[]>([])
   const [selectedTopico, setSelectedTopico] = useState<Topico | null>(null)
   const [novoTopico, setNovoTopico] = useState('')
+  const [descricao, setDescricao] = useState('')
+  const [status, setStatus] = useState('processing')
 
   const [atividades, setAtividades] = useState<Atividade[]>([])
   const [novaAtividade, setNovaAtividade] = useState('')
@@ -202,6 +204,14 @@ export default function Settings() {
     await adicionarTopico(selectedOrg.id, selectedMateria.id, {
       nome: novoTopico,
       descricao: '',
+      status: 'processing',
+      questions: {
+        total_attempted: 0,
+        correct_answers: 0,
+        sessions: [],
+      },
+      learning: { completed_at: null },
+      review: { review_count: 0 },
     })
     setNovoTopico('')
     carregarTopicos()
@@ -312,6 +322,10 @@ export default function Settings() {
         topicos={topicos}
         novoTopico={novoTopico}
         setNovoTopico={setNovoTopico}
+        descricao={descricao}
+        setDescricao={setDescricao}
+        status={status}
+        setStatus={setStatus}
         addTopico={addTopico}
         editTopico={editTopico}
         deletarTopico={async (id, materiaId) => {

@@ -8,6 +8,10 @@ export interface Topico {
   id: string
   nome: string
   descricao: string
+  status: 'success' | 'failed' | 'processing'
+  learning: { completed_at: string | null }
+  review: { review_count: number }
+  questions: { total_attempted: number; correct_answers: number; sessions: any[] }
   // materiaId e organizacaoId não são mais necessários no documento
 }
 
@@ -26,9 +30,20 @@ export const fetchTopicos = async (organizacaoId: string, materiaId: string): Pr
   }));
 }
 
-export const adicionarTopico = async (organizacaoId: string, materiaId: string, novo: Omit<Topico, 'id'>) => {
-  return addDoc(getTopicosCollectionRef(organizacaoId, materiaId), novo);
-}
+export const adicionarTopico = async (
+  organizacaoId: string,
+  materiaId: string,
+  novo: Omit<Topico, 'id'>
+) => {
+  return addDoc(getTopicosCollectionRef(organizacaoId, materiaId), {
+    ...novo,
+    descricao: novo.descricao || '',
+    status: novo.status || 'processing',
+    learning: novo.learning || { completed_at: null },
+    review: novo.review || { review_count: 0 },
+    questions: novo.questions || { total_attempted: 0, correct_answers: 0, sessions: [] },
+  });
+};
 
 export const deletarTopico = async (organizacaoId: string, materiaId: string, topicoId: string) => {
   const userId = getAuth().currentUser?.uid;
@@ -37,12 +52,31 @@ export const deletarTopico = async (organizacaoId: string, materiaId: string, to
   await deleteDoc(ref);
 }
 
-export const atualizarTopico = async (organizacaoId: string, materiaId: string, topicoId: string, dadosAtualizados: Partial<Topico>) => {
+export const atualizarTopico = async (
+  organizacaoId: string,
+  materiaId: string,
+  topicoId: string,
+  dadosAtualizados: Partial<Topico>
+) => {
   const userId = getAuth().currentUser?.uid;
   if (!userId) throw new Error('Usuário não autenticado');
-  const ref = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId, 'topicos', topicoId);
-  await updateDoc(ref, dadosAtualizados);
-}
+  const ref = doc(
+    db,
+    'users',
+    userId,
+    'organizacoes',
+    organizacaoId,
+    'materias',
+    materiaId,
+    'topicos',
+    topicoId
+  );
+  await updateDoc(ref, {
+    ...dadosAtualizados,
+    descricao: dadosAtualizados.descricao || '',
+    status: dadosAtualizados.status || 'processing',
+  });
+};
 
 export const fetchTopicoById = async (organizacaoId: string, materiaId: string, topicoId: string): Promise<Topico | null> => {
   const userId = getAuth().currentUser?.uid;
