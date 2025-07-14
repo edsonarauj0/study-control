@@ -17,6 +17,9 @@ interface FormAtividadesProps {
   selectedTopicoNome: string
   onVoltar: () => void
   BreadcrumbNav: React.ReactNode
+  isModal?: boolean
+  isOpen?: boolean
+  onClose?: () => void
 }
 
 export function FormAtividades({
@@ -30,6 +33,9 @@ export function FormAtividades({
   selectedTopicoNome,
   onVoltar,
   BreadcrumbNav,
+  isModal = false,
+  isOpen = false,
+  onClose,
 }: FormAtividadesProps) {
   const [openRevisao, setOpenRevisao] = React.useState(false)
   const [revisaoNome, setRevisaoNome] = React.useState('')
@@ -48,12 +54,14 @@ export function FormAtividades({
     setDias(1)
     setOpenRevisao(false)
   }
-  return (
+  const formContent = (
     <div className="space-y-8">
-      <Button size="sm" variant="outline" onClick={onVoltar}>
-        Voltar
-      </Button>
-      {BreadcrumbNav}
+      {!isModal && (
+        <Button size="sm" variant="outline" onClick={onVoltar}>
+          Voltar
+        </Button>
+      )}
+      {!isModal && BreadcrumbNav}
       <section>
         <h2 className="text-lg font-semibold mb-2">
           Atividades de {selectedTopicoNome}
@@ -117,4 +125,19 @@ export function FormAtividades({
       </section>
     </div>
   )
+
+  if (isModal) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Atividades</DialogTitle>
+          </DialogHeader>
+          {formContent}
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  return formContent
 }
