@@ -12,6 +12,7 @@ const RevisaoItemSchema = z.object({
 
 const RevisaoSchema = z.object({
   dataInicial: z.date(),
+  novoDia: z.date(),
   revisoes: z.array(RevisaoItemSchema).min(1, "Adicione ao menos uma revisão"),
 });
 

@@ -210,20 +210,18 @@ const MateriaDetails = () => {
 
       <ResponsiveCard size="4x1">
         {/* Tabela de Tópicos */}
-        <Card className="bg-white rounded-lg shadow">
-          <CardHeader>
-            <CardTitle className="text-lg">Plano de Estudo</CardTitle>
-            <CardDescription className="text-sm text-gray-500">Acompanhe o status de cada tópico do edital.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <DataTableColumnsVisibilityDemo
-              topicos={topicos}
-              onUpdateStatus={handleUpdateTopicoStatus}
-              baseUrl={`/organizacao/${activeOrganizacao?.id}/materia/${idMateria}/topico`}
-              onDelete={handleDeleteTopico}
-            />
-          </CardContent>
-        </Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Plano de Estudo</CardTitle>
+          <CardDescription className="text-sm text-gray-500">Acompanhe o status de cada tópico do edital.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DataTableColumnsVisibilityDemo
+            topicos={topicos}
+            onUpdateStatus={handleUpdateTopicoStatus}
+            baseUrl={`/organizacao/${activeOrganizacao?.id}/materia/${idMateria}/topico`}
+            onDelete={handleDeleteTopico}
+          />
+        </CardContent>
       </ResponsiveCard>
       {/* Pequenos Cards */}
       {Array.from({ length: 4 }).map((_, i) => (

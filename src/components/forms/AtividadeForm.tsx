@@ -169,7 +169,7 @@ export function FormAtividades({
                       <Input
                         type="number"
                         placeholder="Ex.: 7"
-                        value={field.value || ''}
+                        value={field.value ? (typeof field.value === 'number' ? field.value : (field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value)) : ''}
                         onChange={field.onChange}
                       />
                     </FormControl>
@@ -184,7 +184,7 @@ export function FormAtividades({
                   const dias = Number(form.getValues("novoDia"))
                   if (!dias) return
                   append({ dias })
-                  form.setValue("novoDia", "")
+                  form.setValue("novoDia", new Date());
                 }}
               >
                 <PlusCircle className="w-4 h-4" />
