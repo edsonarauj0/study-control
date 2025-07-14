@@ -21,6 +21,7 @@ import {
   SearchIcon,
 } from "lucide-react";
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -101,7 +102,7 @@ export type Topico = {
   };
 };
 
-export const columns: ColumnDef<Topico>[] = [
+export const columns = (baseUrl: string): ColumnDef<Topico>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -144,7 +145,17 @@ export const columns: ColumnDef<Topico>[] = [
         </Button>
       );
     },
-    cell: ({ row }) => <div className="lowercase">{row.getValue("nome")}</div>,
+    cell: ({ row }) => {
+      const navigate = useNavigate();
+      return (
+        <div
+          className="lowercase hover:font-semibold cursor-pointer"
+          onClick={() => navigate(`${baseUrl}/${row.original.id}`)}
+        >
+          {row.getValue("nome")}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "questions.total_attempted",
@@ -199,7 +210,7 @@ export const columns: ColumnDef<Topico>[] = [
   },
 ];
 
-export default function DataTableColumnsVisibilityDemo({ topicos }: { topicos: Topico[] }) {
+export default function DataTableColumnsVisibilityDemo({ topicos, baseUrl }: { topicos: Topico[]; baseUrl: string }) {
   const [searchQuery, setSearchQuery] = React.useState<string>();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -211,7 +222,7 @@ export default function DataTableColumnsVisibilityDemo({ topicos }: { topicos: T
 
   const table = useReactTable({
     data: topicos,
-    columns,
+    columns: columns(baseUrl),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

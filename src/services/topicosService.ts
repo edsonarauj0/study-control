@@ -79,6 +79,7 @@ export const atualizarTopico = async (
 };
 
 export const fetchTopicoById = async (organizacaoId: string, materiaId: string, topicoId: string): Promise<Topico | null> => {
+  debugger
   const userId = getAuth().currentUser?.uid;
   if (!userId) throw new Error('Usuário não autenticado');
   const docRef = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId, 'topicos', topicoId);
