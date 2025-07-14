@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Materia, fetchMateriaById, deletarMateria } from '@/services/materiasService';
-import { fetchTopicos, Topico, adicionarTopico } from '@/services/topicosService';
+import { fetchTopicos, Topico, adicionarTopico, deletarTopico } from '@/services/topicosService';
 import AuthContext from '@/contexts/AuthContext';
 import { useOrganizacao } from '@/contexts/OrganizacaoContext';
 import { Button } from '@/components/ui/Button';
@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import DataTableColumnsVisibilityDemo from '@/components/table-11';
 import ResponsiveCard from '@/components/ui/ResponsiveCard';
+import { FormTopicos } from '@/components/forms/TopicoForm';
 
 const MateriaDetails = () => {
   const { idMateria } = useParams();
@@ -23,9 +24,11 @@ const MateriaDetails = () => {
   const [topicos, setTopicos] = useState<Topico[]>([]);
   const [estudo, setEstudo] = useState<Record<string, boolean>>({});
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showTopicoModal, setShowTopicoModal] = useState(false);
   const [novoTopicoNome, setNovoTopicoNome] = useState('');
   const [novoTopicoDesc, setNovoTopicoDesc] = useState('');
+  const [novoTopicoStatus, setNovoTopicoStatus] = useState<'Andamento' | 'Concluído' | 'Não iniciado'>('Andamento');
+  const [refreshTopicos, setRefreshTopicos] = useState(false); // Estado para forçar atualização dos tópicos
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,7 +51,7 @@ const MateriaDetails = () => {
     };
 
     loadData();
-  }, [idMateria, userId, activeOrganizacao]);
+  }, [idMateria, userId, activeOrganizacao, refreshTopicos]); // Adiciona refreshTopicos como dependência
 
   if (!materia) {
     return <p>Carregando...</p>;
@@ -69,20 +72,43 @@ const MateriaDetails = () => {
   };
 
   const handleAddTopico = async () => {
-    if (!activeOrganizacao || !idMateria || !novoTopicoNome) return;
+    if (!activeOrganizacao || !idMateria || !novoTopicoNome || !novoTopicoStatus) return;
+
     await adicionarTopico(activeOrganizacao.id, idMateria, {
       nome: novoTopicoNome,
       descricao: novoTopicoDesc,
-      status: 'processing',
+      status: novoTopicoStatus, // Usa o status selecionado no formulário
       learning: { completed_at: null },
       review: { review_count: 0 },
       questions: { total_attempted: 0, correct_answers: 0, sessions: [] },
     });
-    setShowAddDialog(false);
+
+    // Força a atualização dos tópicos
+    setRefreshTopicos(prev => !prev);
+
+    // Limpa os campos do modal e fecha
     setNovoTopicoNome('');
     setNovoTopicoDesc('');
-    window.location.reload();
+    setNovoTopicoStatus('Não iniciado'); // Reseta o status
+    setShowTopicoModal(false);
   };
+
+  const handleUpdateTopicoStatus = async (topicoId: any, newStatus: any) => {
+    if (!activeOrganizacao || !idMateria) return;
+    setTopicos((prevTopicos) =>
+      prevTopicos.map((topico) =>
+        topico.id === topicoId ? { ...topico, status: newStatus } : topico
+      )
+    );
+  };
+
+  // Adiciona função para deletar tópico
+  const handleDeleteTopico = async (topicoId: string) => {
+    if (!activeOrganizacao || !idMateria) return; // Removeu condições irrelevantes
+    await deletarTopico(activeOrganizacao.id, idMateria, topicoId);
+    setTopicos((prevTopicos) => prevTopicos.filter((topico) => topico.id !== topicoId));
+  };
+
 
   return (
     <section
@@ -94,7 +120,7 @@ const MateriaDetails = () => {
         compact
         className="flex flex-row justify-end gap-2"
       >
-        <Button size="icon" variant="ghost" onClick={() => setShowAddDialog(true)}>
+        <Button size="icon" variant="ghost" onClick={() => setShowTopicoModal(true)}>
           <PlusCircle className="w-4 h-4" />
         </Button>
         <Button size="icon" variant="ghost" onClick={() => setShowDeleteDialog(true)}>
@@ -112,6 +138,19 @@ const MateriaDetails = () => {
         </DropdownMenu>
       </ResponsiveCard>
 
+      {/* Modal for FormTopicos */}
+      <FormTopicos
+        isModal
+        isOpen={showTopicoModal}
+        onClose={() => setShowTopicoModal(false)}
+        novoTopico={novoTopicoNome}
+        setNovoTopico={setNovoTopicoNome}
+        descricao={novoTopicoDesc}
+        setDescricao={setNovoTopicoDesc}
+        status={novoTopicoStatus}
+        setStatus={setNovoTopicoStatus}
+        addTopico={handleAddTopico}
+      />
 
       <ResponsiveCard
         size="2x1"
@@ -179,7 +218,9 @@ const MateriaDetails = () => {
           <CardContent>
             <DataTableColumnsVisibilityDemo
               topicos={topicos}
+              onUpdateStatus={handleUpdateTopicoStatus}
               baseUrl={`/organizacao/${activeOrganizacao?.id}/materia/${idMateria}/topico`}
+              onDelete={handleDeleteTopico}
             />
           </CardContent>
         </Card>
@@ -216,32 +257,6 @@ const MateriaDetails = () => {
             <Button variant="destructive" onClick={handleDeleteMateria}>
               Excluir
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Novo Tópico</DialogTitle>
-            <DialogDescription>Adicionar novo tópico para a matéria.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Input
-              placeholder="Nome do tópico"
-              value={novoTopicoNome}
-              onChange={e => setNovoTopicoNome(e.target.value)}
-            />
-            <Textarea
-              placeholder="Descrição"
-              value={novoTopicoDesc}
-              onChange={e => setNovoTopicoDesc(e.target.value)}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddTopico}>Adicionar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

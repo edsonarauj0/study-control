@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -43,54 +44,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "./ui/Button";
-
-const data: Topico[] = [
-  {
-    id: "m5gr84i9",
-    nome: "Tópico 1",
-    status: "success",
-    questions: {
-      total_attempted: 10,
-      correct_answers: 8,
-    },
-  },
-  {
-    id: "3u1reuv4",
-    nome: "Tópico 2",
-    status: "success",
-    questions: {
-      total_attempted: 5,
-      correct_answers: 5,
-    },
-  },
-  {
-    id: "derv1ws0",
-    nome: "Tópico 3",
-    status: "processing",
-    questions: {
-      total_attempted: 7,
-      correct_answers: 4,
-    },
-  },
-  {
-    id: "5kma53ae",
-    nome: "Tópico 4",
-    status: "success",
-    questions: {
-      total_attempted: 8,
-      correct_answers: 6,
-    },
-  },
-  {
-    id: "bhqecj4p",
-    nome: "Tópico 5",
-    status: "failed",
-    questions: {
-      total_attempted: 6,
-      correct_answers: 2,
-    },
-  },
-];
+import { Badge } from "@/components/ui/badge";
 
 export type Topico = {
   id: string;
@@ -102,7 +56,14 @@ export type Topico = {
   };
 };
 
-export const columns = (baseUrl: string): ColumnDef<Topico>[] => [
+const statusOptions = [
+  { label: "Não Iniciado", value: "not_started", color: "gray" },
+  { label: "Estudando", value: "processing", color: "blue" },
+  { label: "Revisando", value: "reviewing", color: "yellow" },
+  { label: "Concluído", value: "completed", color: "green" },
+];
+
+export const columns = (baseUrl: string, onDelete?: (topicoId: string) => void): ColumnDef<Topico>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -196,9 +157,11 @@ export const columns = (baseUrl: string): ColumnDef<Topico>[] => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(topico.id)}
+              onClick={() => {
+                  onDelete && onDelete(topico.id);
+              }}
             >
-              Copy Tópico ID
+              Excluir
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>View customer</DropdownMenuItem>
@@ -210,7 +173,7 @@ export const columns = (baseUrl: string): ColumnDef<Topico>[] => [
   },
 ];
 
-export default function DataTableColumnsVisibilityDemo({ topicos, baseUrl }: { topicos: Topico[]; baseUrl: string }) {
+export default function DataTableColumnsVisibilityDemo({ topicos, baseUrl, onUpdateStatus, onDelete }: { topicos: Topico[]; baseUrl: string; onUpdateStatus?: (topicoId: string, newStatus: string) => void; onDelete?: (topicoId: string) => void; }) {
   const [searchQuery, setSearchQuery] = React.useState<string>();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -222,7 +185,7 @@ export default function DataTableColumnsVisibilityDemo({ topicos, baseUrl }: { t
 
   const table = useReactTable({
     data: topicos,
-    columns: columns(baseUrl),
+    columns: columns(baseUrl, onDelete),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),

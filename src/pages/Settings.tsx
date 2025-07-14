@@ -55,7 +55,7 @@ export default function Settings() {
   const [selectedTopico, setSelectedTopico] = useState<Topico | null>(null)
   const [novoTopico, setNovoTopico] = useState('')
   const [descricao, setDescricao] = useState('')
-  const [status, setStatus] = useState('processing')
+  const [status, setStatus] = useState<'Andamento' | 'Concluído' | 'Não iniciado'>('Andamento')
 
   const [atividades, setAtividades] = useState<Atividade[]>([])
   const [novaAtividade, setNovaAtividade] = useState('')
@@ -198,13 +198,12 @@ export default function Settings() {
     carregarMaterias()
   }
 
-  const addTopico = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const addTopico = async () => {
     if (!selectedMateria || !selectedOrg) return
     await adicionarTopico(selectedOrg.id, selectedMateria.id, {
       nome: novoTopico,
       descricao: '',
-      status: 'processing',
+      status: 'Andamento',
       questions: {
         total_attempted: 0,
         correct_answers: 0,
@@ -319,7 +318,6 @@ export default function Settings() {
   if (!selectedTopico) {
     return (
       <FormTopicos
-        topicos={topicos}
         novoTopico={novoTopico}
         setNovoTopico={setNovoTopico}
         descricao={descricao}
@@ -327,15 +325,6 @@ export default function Settings() {
         status={status}
         setStatus={setStatus}
         addTopico={addTopico}
-        editTopico={editTopico}
-        deletarTopico={async (id, materiaId) => {
-          await deletarTopico(id, materiaId, selectedOrg?.id ?? '')
-          carregarTopicos()
-        }}
-        setSelectedTopico={setSelectedTopico}
-        selectedMateriaNome={selectedMateria?.nome || ''}
-        onVoltar={() => setSelectedMateria(null)}
-        BreadcrumbNav={<BreadcrumbNav />}
       />
     )
   }

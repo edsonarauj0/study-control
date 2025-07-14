@@ -8,7 +8,7 @@ export interface Topico {
   id: string
   nome: string
   descricao: string
-  status: 'success' | 'failed' | 'processing'
+  status: 'Andamento' | 'Concluído' | 'Não iniciado'
   learning: { completed_at: string | null }
   review: { review_count: number }
   questions: { total_attempted: number; correct_answers: number; sessions: any[] }
@@ -35,6 +35,14 @@ export const adicionarTopico = async (
   materiaId: string,
   novo: Omit<Topico, 'id'>
 ) => {
+  const userId = getAuth().currentUser?.uid;
+  if (!userId) throw new Error('Usuário não autenticado');
+
+  // Verifica os dados antes de salvar
+  if (!novo.nome || !novo.status) {
+    throw new Error('Nome e status do tópico são obrigatórios');
+  }
+
   return addDoc(getTopicosCollectionRef(organizacaoId, materiaId), {
     ...novo,
     descricao: novo.descricao || '',
@@ -79,7 +87,6 @@ export const atualizarTopico = async (
 };
 
 export const fetchTopicoById = async (organizacaoId: string, materiaId: string, topicoId: string): Promise<Topico | null> => {
-  debugger
   const userId = getAuth().currentUser?.uid;
   if (!userId) throw new Error('Usuário não autenticado');
   const docRef = doc(db, 'users', userId, 'organizacoes', organizacaoId, 'materias', materiaId, 'topicos', topicoId);

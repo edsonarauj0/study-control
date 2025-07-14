@@ -11,7 +11,6 @@ export default function TopicoDetails() {
   useEffect(() => {
     const load = async () => {
       if (!idTopico || !idMateria || !activeOrganizacao) return;
-      debugger
       const top = await fetchTopicoById(activeOrganizacao.id, idMateria, idTopico);
       setTopico(top);
     };
