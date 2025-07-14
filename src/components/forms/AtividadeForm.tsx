@@ -4,11 +4,12 @@ import { Atividade } from '@/services/atividadesService'
 import React from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form'
-import { useForm } from 'react-hook-form'
+import { useForm, useFieldArray } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import z from 'zod'
 import { FormAtividadeSchema } from '@/schema/FormAtividadeSchema';
 import { Select, SelectContent, SelectItem, SelectTrigger } from '../ui/select'
+import { PlusCircle, Trash2 } from 'lucide-react'
 
 interface FormAtividadesProps {
   atividades: Atividade[]
@@ -25,10 +26,12 @@ interface FormAtividadesProps {
 }
 
 const defaultValues = {
-  tipo: "aula" as const, // Ensure the type matches the discriminated union
+  tipo: "aula" as const,
   nome: "",
   tempo: 1,
   status: "pendente" as const,
+  dataInicial: new Date(),
+  revisoes: [] as { dias: number }[],
 };
 
 export function FormAtividades({
@@ -48,6 +51,11 @@ export function FormAtividades({
     resolver: zodResolver(FormAtividadeSchema),
     defaultValues
   })
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'revisoes'
+  })
+  const dataInicial = form.watch('dataInicial')
   const tipoLabels: Record<string, string> = {
     aula: "Aula",
     revisao: "Revisão",
@@ -134,118 +142,82 @@ export function FormAtividades({
           <>
             <FormField
               control={form.control}
-              name="dataAtual"
+              name="dataInicial"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel htmlFor="dataAtual">Data Atual</FormLabel>
+                  <FormLabel htmlFor="dataInicial">Data Inicial</FormLabel>
                   <FormControl>
                     <Input
-                      id="dataAtual"
-                      name="dataAtual"
+                      id="dataInicial"
                       type="date"
-                      value={typeof field.value === 'string' ? field.value : new Date().toISOString().split('T')[0]}
-                      readOnly
+                      value={new Date(field.value).toISOString().split('T')[0]}
+                      onChange={(e) => field.onChange(new Date(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="data24h"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="data24h">Revisão em 24h</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="data24h"
-                      name="data24h"
-                      type="date"
-                      value={typeof field.value === 'string' ? field.value : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      onChange={(e) => field.onChange(e.target.value)}
+            <div className="flex items-end gap-2">
+              <FormField
+                control={form.control}
+                name="novoDia"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>Dias para revisão</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Ex.: 7"
+                        value={field.value || ''}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  const dias = Number(form.getValues("novoDia"))
+                  if (!dias) return
+                  append({ dias })
+                  form.setValue("novoDia", "")
+                }}
+              >
+                <PlusCircle className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex flex-col gap-2">
+              {fields.map((field, index) => {
+                const date = new Date(dataInicial)
+                date.setDate(date.getDate() + (field.dias || 0))
+                const formatted = date.toISOString().split('T')[0]
+                return (
+                  <div key={field.id} className="flex items-end gap-2">
+                    <FormField
+                      control={form.control}
+                      name={`revisoes.${index}.dias` as const}
+                      render={({ field: diasField }) => (
+                        <FormItem className="flex-1">
+                          <FormLabel>Dias</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...diasField} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="data7dias"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="data7dias">Revisão em 7 dias</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="data7dias"
-                      name="data7dias"
-                      type="date"
-                      value={typeof field.value === 'string' ? field.value : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="data30dias"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="data30dias">Revisão em 30 dias</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="data30dias"
-                      name="data30dias"
-                      type="date"
-                      value={typeof field.value === 'string' ? field.value : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="data3meses"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="data3meses">Revisão em 3 meses</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="data3meses"
-                      name="data3meses"
-                      type="date"
-                      value={typeof field.value === 'string' ? field.value : new Date(Date.now() + 3 * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="data6meses"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel htmlFor="data6meses">Revisão em 6 meses</FormLabel>
-                  <FormControl>
-                    <Input
-                      id="data6meses"
-                      name="data6meses"
-                      type="date"
-                      value={typeof field.value === 'string' ? field.value : new Date(new Date().setMonth(new Date().getMonth() + 6)).toISOString().split('T')[0]}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <Input type="date" value={formatted} readOnly className="w-40" />
+                    <Button type="button" size="icon" variant="ghost" onClick={() => remove(index)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )
+              })}
+            </div>
           </>
         )}
 
