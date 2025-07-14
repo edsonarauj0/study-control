@@ -13,6 +13,7 @@ const RevisaoItemSchema = z.object({
 const RevisaoSchema = z.object({
   dataInicial: z.date(),
   novoDia: z.date(),
+  unidade: z.enum(["dias", "semanas", "meses"]),
   revisoes: z.array(RevisaoItemSchema).min(1, "Adicione ao menos uma revisão"),
 });
 
@@ -23,9 +24,9 @@ const QuestoesSchema = z.object({
 });
 
 const FormAtividadeSchema = z.discriminatedUnion("tipo", [
-  z.object({ tipo: z.literal("aula") }).merge(AulaSchema),
+  z.object({ tipo: z.literal("aula"), nome: z.string(), tempo: z.number(), status: z.enum(["pendente", "concluído"]) }),
   z.object({ tipo: z.literal("revisao") }).merge(RevisaoSchema),
-  z.object({ tipo: z.literal("questoes") }).merge(QuestoesSchema),
+  z.object({ tipo: z.literal("questoes"), total: z.number(), acertos: z.number(), erros: z.number() }),
 ]);
 
 export { FormAtividadeSchema };
