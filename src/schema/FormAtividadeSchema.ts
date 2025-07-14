@@ -6,13 +6,13 @@ const AulaSchema = z.object({
   status: z.enum(["pendente", "concluído"], "Status inválido"),
 });
 
+const RevisaoItemSchema = z.object({
+  dias: z.number().min(1, "Dias deve ser no mínimo 1"),
+});
+
 const RevisaoSchema = z.object({
-  dataAtual: z.date(),
-  data24h: z.date(),
-  data7dias: z.date(),
-  data30dias: z.date(),
-  data3meses: z.date(),
-  data6meses: z.date(),
+  dataInicial: z.date(),
+  revisoes: z.array(RevisaoItemSchema).min(1, "Adicione ao menos uma revisão"),
 });
 
 const QuestoesSchema = z.object({
