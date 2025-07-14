@@ -1,25 +1,31 @@
-import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { fetchTopicoById, Topico } from '@/services/topicosService';
-import { useOrganizacao } from '@/contexts/OrganizacaoContext';
+import { useEffect, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { fetchTopicoById, Topico } from '@/services/topicosService'
+import { useOrganizacao } from '@/contexts/OrganizacaoContext'
 import ResponsiveCard from '@/components/ui/ResponsiveCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Book, MoreHorizontal, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import { FormAtividades } from '@/components/forms/AtividadeForm';
+import { TopicoStatusPanel } from '@/components/features/TopicoStatusPanel'
+import { AtividadeExtended } from '@/lib/topicoStatus'
+import { fetchAtividades } from '@/services/atividadesService'
 
 export default function TopicoDetails() {
   const { idMateria, idTopico } = useParams();
   const [topico, setTopico] = useState<Topico | null>(null);
   const { activeOrganizacao } = useOrganizacao();
   const [showAtividadeModal, setShowAtividadeModal] = useState(false);
+  const [atividades, setAtividades] = useState<AtividadeExtended[]>([])
 
   useEffect(() => {
     const load = async () => {
       if (!idTopico || !idMateria || !activeOrganizacao) return;
       const top = await fetchTopicoById(activeOrganizacao.id, idMateria, idTopico);
       setTopico(top);
+      const acts = await fetchAtividades(activeOrganizacao.id, idMateria, idTopico)
+      setAtividades(acts as unknown as AtividadeExtended[])
     };
     load();
   }, [idTopico, idMateria, activeOrganizacao]);
@@ -32,6 +38,9 @@ export default function TopicoDetails() {
     <section
       className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6
         auto-rows-[minmax(50px,auto)] gap-4 grid-flow-dense" >
+      <div className="col-span-4">
+        <TopicoStatusPanel atividades={atividades} topicoNome={topico.nome} />
+      </div>
       <ResponsiveCard
         size="4x1"
         rows={1}
