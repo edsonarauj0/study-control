@@ -1,13 +1,32 @@
 // services/atividades.ts
 
 import { db } from '@/firebase'
-import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+  updateDoc,
+} from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
+
+export interface RevisionItem {
+  dias: number
+  concluido?: boolean
+}
 
 export interface Atividade {
   id: string
-  nome: string
-  // topicoId não é mais necessário no documento
+  tipo: 'aula' | 'revisao' | 'questoes'
+  nome?: string
+  tempo?: number
+  status?: 'pendente' | 'concluido'
+  total?: number
+  acertos?: number
+  erros?: number
+  dataInicial?: string
+  revisoes?: RevisionItem[]
 }
 
 // Helper para a referência da coleção

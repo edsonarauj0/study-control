@@ -10,7 +10,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { FormAtividades } from '@/components/forms/AtividadeForm';
 import { TopicoStatusPanel } from '@/components/features/TopicoStatusPanel'
 import { AtividadeExtended } from '@/lib/topicoStatus'
-import { fetchAtividades } from '@/services/atividadesService'
+import {
+  fetchAtividades,
+  adicionarAtividade,
+} from '@/services/atividadesService'
+import { FormAtividadeSchema } from '@/schema/FormAtividadeSchema'
+import { z } from 'zod'
 
 export default function TopicoDetails() {
   const { idMateria, idTopico } = useParams();
@@ -18,6 +23,24 @@ export default function TopicoDetails() {
   const { activeOrganizacao } = useOrganizacao();
   const [showAtividadeModal, setShowAtividadeModal] = useState(false);
   const [atividades, setAtividades] = useState<AtividadeExtended[]>([])
+
+  const handleAddAtividade = async (
+    data: z.infer<typeof FormAtividadeSchema>,
+  ) => {
+    if (!activeOrganizacao || !idMateria || !idTopico) return
+    // remove campos somente usados no formulario
+    const { novoDia, unidade, ...rest } = data as any
+    const payload = {
+      ...rest,
+      dataInicial: rest.dataInicial
+        ? (rest.dataInicial as Date).toISOString()
+        : undefined,
+    }
+    await adicionarAtividade(activeOrganizacao.id, idMateria, idTopico, payload)
+    const acts = await fetchAtividades(activeOrganizacao.id, idMateria, idTopico)
+    setAtividades(acts as unknown as AtividadeExtended[])
+    setShowAtividadeModal(false)
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -64,18 +87,18 @@ export default function TopicoDetails() {
           </DropdownMenuContent>
         </DropdownMenu>
       </ResponsiveCard>
-      <FormAtividades 
+      <FormAtividades
         isOpen={showAtividadeModal}
         onClose={() => setShowAtividadeModal(false)}
-        atividades={[]} // TODO: replace with actual atividades array
-        novaAtividade={""} // TODO: replace with actual novaAtividade string
-        setNovaAtividade={() => {}} // TODO: replace with actual setter function
-        addAtividade={() => {}} // TODO: replace with actual add function
-        editAtividade={() => {}} // TODO: replace with actual edit function
-        deletarAtividade={() => {}} // TODO: replace with actual delete function
+        atividades={atividades as any}
+        novaAtividade={""}
+        setNovaAtividade={() => {}}
+        addAtividade={handleAddAtividade}
+        editAtividade={() => {}}
+        deletarAtividade={() => {}}
         selectedTopicoNome={topico?.nome || ""}
         onVoltar={() => setShowAtividadeModal(false)}
-        BreadcrumbNav={null} // TODO: replace with actual BreadcrumbNav component if needed
+        BreadcrumbNav={null}
       />
       <ResponsiveCard
         size="2x1"
