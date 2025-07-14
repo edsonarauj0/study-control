@@ -7,7 +7,8 @@ import { getAuth } from 'firebase/auth'
 export interface Atividade {
   id: string
   nome: string
-  // topicoId não é mais necessário no documento
+  tipo?: 'tarefa' | 'revisao'
+  data?: string
 }
 
 // Helper para a referência da coleção
