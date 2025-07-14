@@ -228,8 +228,19 @@ export default function Settings() {
     if (!selectedTopico || !selectedMateria || !selectedOrg) return
     await adicionarAtividade(selectedOrg.id, selectedMateria.id, selectedTopico.id, {
       nome: novaAtividade,
+      tipo: 'tarefa',
     })
     setNovaAtividade('')
+    carregarAtividades()
+  }
+
+  const addRevisao = async (nome: string, data: Date) => {
+    if (!selectedTopico || !selectedMateria || !selectedOrg) return
+    await adicionarAtividade(selectedOrg.id, selectedMateria.id, selectedTopico.id, {
+      nome,
+      tipo: 'revisao',
+      data: data.toISOString(),
+    })
     carregarAtividades()
   }
 
@@ -335,6 +346,7 @@ export default function Settings() {
       novaAtividade={novaAtividade}
       setNovaAtividade={setNovaAtividade}
       addAtividade={addAtividade}
+      addRevisao={addRevisao}
       editAtividade={editAtividade}
       deletarAtividade={async (id, topicoId) => {
         await deletarAtividade(id, topicoId, selectedMateria?.id ?? '', selectedOrg?.id ?? '')
