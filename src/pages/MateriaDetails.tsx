@@ -1,13 +1,17 @@
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Materia, fetchMateriaById } from '@/services/materiasService';
-import { fetchTopicos, Topico } from '@/services/topicosService';
+import { Materia, fetchMateriaById, deletarMateria } from '@/services/materiasService';
+import { fetchTopicos, Topico, adicionarTopico } from '@/services/topicosService';
 import AuthContext from '@/contexts/AuthContext';
 import { useOrganizacao } from '@/contexts/OrganizacaoContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Book, Calendar, Target, PlusCircle } from 'lucide-react';
+import { Book, Calendar, Target, PlusCircle, Trash2, MoreHorizontal } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import DataTableColumnsVisibilityDemo from '@/components/table-11';
 import ResponsiveCard from '@/components/ui/ResponsiveCard';
 
@@ -18,6 +22,10 @@ const MateriaDetails = () => {
   const [materia, setMateria] = useState<Materia | null>(null);
   const [topicos, setTopicos] = useState<Topico[]>([]);
   const [estudo, setEstudo] = useState<Record<string, boolean>>({});
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [novoTopicoNome, setNovoTopicoNome] = useState('');
+  const [novoTopicoDesc, setNovoTopicoDesc] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,6 +62,28 @@ const MateriaDetails = () => {
   const questoesFeitas = 50;
   const questoesAcertadas = 35;
 
+  const handleDeleteMateria = async () => {
+    if (!activeOrganizacao || !idMateria) return;
+    await deletarMateria(activeOrganizacao.id, idMateria);
+    window.location.href = '/dashboard';
+  };
+
+  const handleAddTopico = async () => {
+    if (!activeOrganizacao || !idMateria || !novoTopicoNome) return;
+    await adicionarTopico(activeOrganizacao.id, idMateria, {
+      nome: novoTopicoNome,
+      descricao: novoTopicoDesc,
+      status: 'processing',
+      learning: { completed_at: null },
+      review: { review_count: 0 },
+      questions: { total_attempted: 0, correct_answers: 0, sessions: [] },
+    });
+    setShowAddDialog(false);
+    setNovoTopicoNome('');
+    setNovoTopicoDesc('');
+    window.location.reload();
+  };
+
   return (
     <section
       className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6
@@ -62,16 +92,24 @@ const MateriaDetails = () => {
         size="4x1"
         rows={1}
         compact
-        className="flex flex-row justify-between gap-2" >
-        <Button size="sm" className="bg-blue-500 text-white">
-          Novo Tópico
+        className="flex flex-row justify-end gap-2"
+      >
+        <Button size="icon" variant="ghost" onClick={() => setShowAddDialog(true)}>
+          <PlusCircle className="w-4 h-4" />
         </Button>
-        <Button size="sm" className="bg-green-500 text-white">
-          Salvar
+        <Button size="icon" variant="ghost" onClick={() => setShowDeleteDialog(true)}>
+          <Trash2 className="w-4 h-4" />
         </Button>
-        <Button size="sm" className="bg-red-500 text-white">
-          Cancelar
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button size="icon" variant="ghost">
+              <MoreHorizontal className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => alert('Outra ação')}>Outra ação</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </ResponsiveCard>
 
 
@@ -163,6 +201,50 @@ const MateriaDetails = () => {
           </CardContent>
         </ResponsiveCard>
       ))}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Excluir Matéria</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir esta matéria?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteMateria}>
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Novo Tópico</DialogTitle>
+            <DialogDescription>Adicionar novo tópico para a matéria.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Input
+              placeholder="Nome do tópico"
+              value={novoTopicoNome}
+              onChange={e => setNovoTopicoNome(e.target.value)}
+            />
+            <Textarea
+              placeholder="Descrição"
+              value={novoTopicoDesc}
+              onChange={e => setNovoTopicoDesc(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleAddTopico}>Adicionar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };
