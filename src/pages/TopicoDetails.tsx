@@ -3,14 +3,17 @@ import { useParams } from 'react-router-dom'
 import { fetchTopicoById, Topico } from '@/services/topicosService'
 import { useOrganizacao } from '@/contexts/OrganizacaoContext'
 import ResponsiveCard from '@/components/ui/ResponsiveCard';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Book, MoreHorizontal, PlusCircle, Trash2 } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MoreHorizontal, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/DropdownMenu';
 import { FormAtividades } from '@/components/forms/AtividadeForm';
+import { AtividadesTable } from '@/components/features/AtividadesTable';
 import { TopicoStatusPanel } from '@/components/features/TopicoStatusPanel'
 import { AtividadeExtended } from '@/lib/topicoStatus'
-import { fetchAtividades } from '@/services/atividadesService'
+import { fetchAtividades, adicionarAtividade, deletarAtividade, atualizarAtividade, Atividade } from '@/services/atividadesService'
+import { FormAtividadeSchema } from '@/schema/FormAtividadeSchema'
+import { z } from 'zod'
 
 export default function TopicoDetails() {
   const { idMateria, idTopico } = useParams();
@@ -18,6 +21,7 @@ export default function TopicoDetails() {
   const { activeOrganizacao } = useOrganizacao();
   const [showAtividadeModal, setShowAtividadeModal] = useState(false);
   const [atividades, setAtividades] = useState<AtividadeExtended[]>([])
+  const [novaAtividade, setNovaAtividade] = useState('')
 
   useEffect(() => {
     const load = async () => {
@@ -29,6 +33,38 @@ export default function TopicoDetails() {
     };
     load();
   }, [idTopico, idMateria, activeOrganizacao]);
+
+  const carregarAtividades = async () => {
+    if (!activeOrganizacao || !idMateria || !idTopico) return;
+    const acts = await fetchAtividades(activeOrganizacao.id, idMateria, idTopico);
+    setAtividades(acts as unknown as AtividadeExtended[]);
+  };
+
+  const addAtividade = async (data: z.infer<typeof FormAtividadeSchema>) => {
+    if (!activeOrganizacao || !idMateria || !idTopico) return;
+    await adicionarAtividade(activeOrganizacao.id, idMateria, idTopico, {
+      ...data,
+      dataInicial: (data as any).dataInicial
+        ? (data as any).dataInicial.toISOString()
+        : undefined,
+    });
+    setNovaAtividade('');
+    setShowAtividadeModal(false);
+    carregarAtividades();
+  };
+
+  const deletarAtividadeHandler = async (atividadeId: string) => {
+    if (!activeOrganizacao || !idMateria || !idTopico) return;
+    await deletarAtividade(activeOrganizacao.id, idMateria, idTopico, atividadeId);
+    carregarAtividades();
+  };
+
+  const editAtividade = async (act: Atividade) => {
+    const nome = prompt('Nome da atividade', act.nome || '') || act.nome;
+    if (!nome) return;
+    await atualizarAtividade(activeOrganizacao?.id || '', idMateria || '', idTopico || '', act.id, { nome });
+    carregarAtividades();
+  };
 
   if (!topico) {
     return <p>Carregando...</p>;
@@ -64,45 +100,26 @@ export default function TopicoDetails() {
           </DropdownMenuContent>
         </DropdownMenu>
       </ResponsiveCard>
-      <FormAtividades 
+      <FormAtividades
         isOpen={showAtividadeModal}
         onClose={() => setShowAtividadeModal(false)}
-        atividades={[]} // TODO: replace with actual atividades array
-        novaAtividade={""} // TODO: replace with actual novaAtividade string
-        setNovaAtividade={() => {}} // TODO: replace with actual setter function
-        addAtividade={() => {}} // TODO: replace with actual add function
-        editAtividade={() => {}} // TODO: replace with actual edit function
-        deletarAtividade={() => {}} // TODO: replace with actual delete function
-        selectedTopicoNome={topico?.nome || ""}
+        atividades={atividades}
+        novaAtividade={novaAtividade}
+        setNovaAtividade={setNovaAtividade}
+        addAtividade={addAtividade}
+        editAtividade={editAtividade}
+        deletarAtividade={deletarAtividadeHandler}
+        selectedTopicoNome={topico?.nome || ''}
         onVoltar={() => setShowAtividadeModal(false)}
-        BreadcrumbNav={null} // TODO: replace with actual BreadcrumbNav component if needed
+        BreadcrumbNav={null}
       />
-      <ResponsiveCard
-        size="2x1"
-        rows={5}
-        className="lg:col-start-5"
-      >
+      <ResponsiveCard size="full" rows={5}>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-sm font-medium text-gray-500">
-            Card Vertical
-          </CardTitle>
-          <Book className="h-4 w-4 text-gray-400" />
+          <CardTitle className="text-sm font-medium text-gray-500">Atividades</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">Ocupa altura total</div>
-          <p className="text-xs text-gray-500">
-            Este card ocupa duas colunas em desktop, mas se ajusta em telas menores.
-          </p>
-          <div style={{ height: '500px' }}></div>
+          <AtividadesTable atividades={atividades} />
         </CardContent>
-      </ResponsiveCard>
-      <ResponsiveCard size="4x1" rows={5}>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Plano de Estudo</CardTitle>
-            <CardDescription className="text-sm text-gray-500">Acompanhe o status de cada tópico do edital.</CardDescription>
-          </CardHeader>
-          <CardContent>
-          </CardContent>
       </ResponsiveCard>
     </section>
   );

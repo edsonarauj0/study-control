@@ -3,11 +3,19 @@
 import { db } from '@/firebase'
 import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore'
 import { getAuth } from 'firebase/auth'
+import { RevisionItem } from '@/lib/topicoStatus'
 
 export interface Atividade {
   id: string
-  nome: string
-  // topicoId não é mais necessário no documento
+  tipo: 'aula' | 'revisao' | 'questoes'
+  nome?: string
+  tempo?: number
+  status?: 'pendente' | 'concluido'
+  total?: number
+  acertos?: number
+  erros?: number
+  dataInicial?: string
+  revisoes?: RevisionItem[]
 }
 
 // Helper para a referência da coleção
@@ -27,7 +35,11 @@ export const fetchAtividades = async (organizacaoId: string, materiaId: string, 
 }
 
 export const adicionarAtividade = async (organizacaoId: string, materiaId: string, topicoId: string, nova: Omit<Atividade, 'id'>) => {
-  return addDoc(getAtividadesCollectionRef(organizacaoId, materiaId, topicoId), nova);
+  const dataToSave = { ...nova } as Record<string, any>;
+  if (nova.dataInicial instanceof Date) {
+    dataToSave.dataInicial = nova.dataInicial.toISOString();
+  }
+  return addDoc(getAtividadesCollectionRef(organizacaoId, materiaId, topicoId), dataToSave);
 }
 
 export const deletarAtividade = async (organizacaoId: string, materiaId: string, topicoId: string, atividadeId: string) => {

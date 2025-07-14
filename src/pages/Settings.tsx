@@ -42,6 +42,8 @@ import { FormAtividades } from '@/components/forms/AtividadeForm'
 import { NovaMateria } from '@/types/materias'
 import { FormularioMaterias } from '@/components/forms/MateriaForm'
 import { getAuth } from 'firebase/auth'
+import { FormAtividadeSchema } from '@/schema/FormAtividadeSchema'
+import { z } from 'zod'
 
 export default function Settings() {
   const [orgs, setOrgs] = useState<Organizacao[]>([])
@@ -223,11 +225,11 @@ export default function Settings() {
     carregarTopicos()
   }
 
-  const addAtividade = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const addAtividade = async (data: z.infer<typeof FormAtividadeSchema>) => {
     if (!selectedTopico || !selectedMateria || !selectedOrg) return
     await adicionarAtividade(selectedOrg.id, selectedMateria.id, selectedTopico.id, {
-      nome: novaAtividade,
+      ...data,
+      dataInicial: (data as any).dataInicial ? (data as any).dataInicial.toISOString() : undefined,
     })
     setNovaAtividade('')
     carregarAtividades()
