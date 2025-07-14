@@ -31,16 +31,14 @@ export function FormTopicos({
   onClose,
 }: FormTopicosProps) {
 
-  // ✅ Crie uma função para lidar com a submissão
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // ⬅️ **A ETAPA MAIS IMPORTANTE!**
-    addTopico();        // Chama a função do componente pai
+    e.preventDefault();
+    addTopico();
   };
 
   const formContent = (
     <div className="space-y-8">
       <section>
-        {/* ✅ Use a nova função handleSubmit no onSubmit */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
             value={novoTopico}
