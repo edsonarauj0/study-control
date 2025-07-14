@@ -3,7 +3,7 @@ import * as z from "zod";
 const AulaSchema = z.object({
   nome: z.string().nonempty("Nome é obrigatório"),
   tempo: z.number().min(1, "Tempo deve ser no mínimo 1 minuto"),
-  status: z.enum(["pendente", "concluído"], "Status inválido"),
+  status: z.enum(["pendente", "concluido"], "Status inválido"),
 });
 
 const RevisaoItemSchema = z.object({
@@ -24,7 +24,7 @@ const QuestoesSchema = z.object({
 });
 
 const FormAtividadeSchema = z.discriminatedUnion("tipo", [
-  z.object({ tipo: z.literal("aula"), nome: z.string(), tempo: z.number(), status: z.enum(["pendente", "concluído"]) }),
+  z.object({ tipo: z.literal("aula"), nome: z.string(), tempo: z.number(), status: z.enum(["pendente", "concluido"]) }),
   z.object({ tipo: z.literal("revisao") }).merge(RevisaoSchema),
   z.object({ tipo: z.literal("questoes"), total: z.number(), acertos: z.number(), erros: z.number() }),
 ]);
