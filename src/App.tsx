@@ -8,6 +8,7 @@ import Settings from '@/pages/Settings';
 import MateriaDetails from '@/pages/MateriaDetails';
 import Sidebar from './components/sidebar/page';
 import { OrganizacaoProvider } from './contexts/OrganizacaoContext';
+import { TaskProvider } from './contexts/TaskContext';
 import { useAuth } from '@/hooks/useAuth';
 import { Toaster } from 'sonner';
 import { ModalProvider } from './contexts/ModalContext';
@@ -33,9 +34,10 @@ function AppContent() {
 
   return (
     <OrganizacaoProvider>
-      <FavoritesProvider>
-        <ModalProvider>
-          <Sidebar>
+      <TaskProvider>
+        <FavoritesProvider>
+          <ModalProvider>
+            <Sidebar>
             <Toaster />
             <Routes>
               <Route
@@ -59,6 +61,7 @@ function AppContent() {
           </Sidebar>
         </ModalProvider>
       </FavoritesProvider>
+      </TaskProvider>
     </OrganizacaoProvider>
   );
 }

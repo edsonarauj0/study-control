@@ -4,6 +4,7 @@ import { Materia, fetchMateriaById, deletarMateria } from '@/services/materiasSe
 import { fetchTopicos, Topico, adicionarTopico, deletarTopico } from '@/services/topicosService';
 import AuthContext from '@/contexts/AuthContext';
 import { useOrganizacao } from '@/contexts/OrganizacaoContext';
+import { useTasks } from '@/contexts/TaskContext';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -20,6 +21,7 @@ const MateriaDetails = () => {
   const { idMateria } = useParams();
   const { userId } = useContext(AuthContext);
   const { activeOrganizacao } = useOrganizacao();
+  const { tasks, loadTasks } = useTasks();
   const [materia, setMateria] = useState<Materia | null>(null);
   const [topicos, setTopicos] = useState<Topico[]>([]);
   const [estudo, setEstudo] = useState<Record<string, boolean>>({});
@@ -47,6 +49,7 @@ const MateriaDetails = () => {
           questions: ((t as unknown) as Topico).questions || { total_attempted: 0, correct_answers: 0, sessions: [] },
         }));
         setTopicos(enrichedTopicos);
+        await loadTasks(activeOrganizacao.id, mat.id);
       }
     };
 
@@ -59,9 +62,11 @@ const MateriaDetails = () => {
 
   const totalTopicos = topicos.length;
   const topicosEstudados = Object.values(estudo).filter(Boolean).length;
-  const percentualDesempenho = Math.round(
-    (topicosEstudados / (totalTopicos || 1)) * 100
-  );
+  const materiaTasks = tasks.filter(t => t.materiaId === idMateria);
+  const totalTasks = materiaTasks.length;
+  const tasksConcluidas = materiaTasks.filter(t => t.status === 'done').length;
+  const tasksEmProgresso = materiaTasks.filter(t => t.status === 'in_progress').length;
+  const percentualDesempenho = Math.round((tasksConcluidas / (totalTasks || 1)) * 100);
   const questoesFeitas = 50;
   const questoesAcertadas = 35;
 
@@ -182,7 +187,7 @@ const MateriaDetails = () => {
         <CardContent>
           <div className="text-2xl font-bold">{percentualDesempenho}%</div>
           <p className="text-xs text-gray-500">
-            {topicosEstudados} de {totalTopicos} tópicos concluídos
+            {tasksEmProgresso} em andamento - {tasksConcluidas} de {totalTasks} concluídas
           </p>
           <Progress
             value={percentualDesempenho}
